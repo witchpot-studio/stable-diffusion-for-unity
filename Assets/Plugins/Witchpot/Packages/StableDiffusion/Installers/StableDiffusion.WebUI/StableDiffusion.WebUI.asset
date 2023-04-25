@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7734bdb5c6ff542a7a94b0aec1b2782c, type: 3}
+  m_Name: StableDiffusion.WebUI
+  m_EditorClassIdentifier: 
+  m_Install:
+    m_Name: WebUI
+    m_Module: StableDiffusion
+    m_Description: 
+    m_Author: Witchpot
+    m_Version:
+      major: 1
+      minor: 1
+      patch: 0
+    m_Complexity: 300
+    m_Dependencies:
+    - m_ID: Core.Git
+      m_MinVersion:
+        major: 2
+        minor: 39
+        patch: 1
+    - m_ID: Core.Python
+      m_MinVersion:
+        major: 3
+        minor: 10
+        patch: 6

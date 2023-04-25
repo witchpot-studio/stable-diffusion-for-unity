@@ -1,0 +1,20 @@
+{
+    "name": "Witchpot.Editor.StableDiffusion",
+    "rootNamespace": "Witchpot.Editor.StableDiffusion",
+    "references": [
+        "Witchpot.Editor.Core",
+        "Witchpot.Runtime.Core",
+        "Witchpot.Runtime.StableDiffusion"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
