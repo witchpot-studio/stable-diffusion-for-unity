@@ -1,1 +1,1 @@
-# stable-diffusion-webui-for-unity
+# stable-diffusion-for-unity
