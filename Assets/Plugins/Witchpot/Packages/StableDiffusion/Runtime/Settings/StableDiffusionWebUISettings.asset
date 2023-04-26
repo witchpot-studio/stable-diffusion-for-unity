@@ -50,6 +50,5 @@ MonoBehaviour:
   - PLMS
   _modelNames:
   - v1-5-pruned-emaonly
-  _modelNamesForControlNet:
-  - v1-5-pruned-emaonly
-  _modelNamesForLora: []
+  _modelNamesForLora:
+  - witchpot-icestage-sd-1-5

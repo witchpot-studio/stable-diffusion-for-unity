@@ -43,7 +43,7 @@ namespace Witchpot.Editor.StableDiffusion
         #endregion
 
         //----------
-        // TODO:  To use RedirectStandardOutput function, add "set PYTHONUNBUFFERED=1" in "Assets\Plugins\Witchpot\Installs~\StableDiffusion.WebUI@1.1.0\environment.bat"
+        // TODO:  To use RedirectStandardOutput function, add "set PYTHONUNBUFFERED=1" in "~\witchpot\StableDiffusion.WebUI@1.2.0\environment.bat"
         // (original includedd in "\Assets\Plugins\Witchpot\Packages\StableDiffusion\Installers\StableDiffusion.WebUI\Package.zip")
         //----------
 
