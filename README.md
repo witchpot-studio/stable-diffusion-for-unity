@@ -19,7 +19,7 @@ You can generate image assets on Unity.
 ## Installation and Running
 Please see [Documents](https://docs.witchpot.com/) for more informations.
 
-1. Download latest unitypackage from Release page.    
+1. Download latest unitypackage from [Release page](https://github.com/witchpot-studio/stable-diffusion-for-unity/releases/tag/v1.2.0).    
 2. Import the unitypackage to your unity project.
 3. Start Server from Menu bar > Witchpot > StartServer     
 ![](Images/startserver.png)
@@ -34,14 +34,9 @@ Please see [Documents](https://docs.witchpot.com/) for more informations.
 ## Contributing
 In Preparation.
 
-## Acknowledgments
-This system installs and uses code from our repository (https://github.com/witchpot-studio/stable-diffusion-webui) which fork from [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
+## License
+Distributed under MIT License.
+Also this system installs and uses code from our repository (https://github.com/witchpot-studio/stable-diffusion-webui) which fork from [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui).
 If you modify these repository, please apply the GPL v3 license.
-stable-diffusion-for-unity connect to stable diffusion webui via API, so stable-diffusion-for-unity is available under the MIT license. 
-
-Also we are using
-- lllyasviel/ControlNet : https://github.com/lllyasviel/ControlNet
-- runwayml/stable-diffusion-v1-5 : https://huggingface.co/runwayml/stable-diffusion-v1-5
-
 
 
