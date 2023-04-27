@@ -18,6 +18,7 @@ namespace Witchpot.Runtime.StableDiffusion
     {
 #if UNITY_EDITOR
         [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
+        [SerializeField] private Camera _camera;
         [SerializeField, TextArea] private string _prompt;
         [SerializeField, TextArea] private string _negativePrompt;
         [SerializeField] private int _width = 960;
@@ -117,19 +118,19 @@ namespace Witchpot.Runtime.StableDiffusion
             var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
             render.antiAliasing = 8;
             var texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
-            var cemara = Camera.main;
+            if (_camera == null) _camera = Camera.main;
 
             try
             {
-                cemara.targetTexture = render;
-                cemara.Render();
+                _camera.targetTexture = render;
+                _camera.Render();
                 RenderTexture.active = render;
                 texture.ReadPixels(new Rect(0, 0, size.x, size.y), 0, 0);
                 texture.Apply();
             }
             finally
             {
-                cemara.targetTexture = null;
+                _camera.targetTexture = null;
                 RenderTexture.active = null;
             }
 
@@ -196,7 +197,7 @@ namespace Witchpot.Runtime.StableDiffusion
                     {
                         Debug.LogWarning("Faled to save generated image.");
                     }
-                    
+
                     Image image = GetComponent<Image>();
                     if (image != null)
                     {
