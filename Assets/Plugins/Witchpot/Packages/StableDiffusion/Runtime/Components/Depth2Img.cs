@@ -113,7 +113,7 @@ namespace Witchpot.Runtime.StableDiffusion
             depth.active = true;
             depth.weight.overrideState = true;
             depth.weight.value = 1f;
-            var size = new Vector2Int((int)Handles.GetMainGameViewSize().x, (int)Handles.GetMainGameViewSize().y);
+            var size = new Vector2Int(_width, _height);
             var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
             render.antiAliasing = 8;
             var texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
