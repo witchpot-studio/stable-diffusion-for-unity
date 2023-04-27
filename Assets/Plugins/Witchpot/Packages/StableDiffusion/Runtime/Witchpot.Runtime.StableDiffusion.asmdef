@@ -2,7 +2,6 @@
     "name": "Witchpot.Runtime.StableDiffusion",
     "rootNamespace": "Witchpot.Runtime.StableDiffusion",
     "references": [
-        "Witchpot.Runtime.Core",
         "Unity.InputSystem",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"
