@@ -1,6 +1,6 @@
 # stable-diffusion-for-unity
 
-Image assets generation using ![Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) within Unity
+Image assets generation using [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) within Unity
 
 ![](Images/depth2imgsample.png)    
 
