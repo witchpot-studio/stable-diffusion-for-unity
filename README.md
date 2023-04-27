@@ -30,13 +30,12 @@ Please see [Documents](https://docs.witchpot.com/) for more informations.
 6. Generate Depth2Img     
 ![](Images/depth2img.png)
 
-For more information
 
 ## Contributing
-In Preparation. Please wait
+In Preparation.
 
 ## Acknowledgments
-This repository is using [our fork repositoy](https://github.com/witchpot-studio/stable-diffusion-webui)     
+This repository is using [our fork repositoy](https://github.com/witchpot-studio/stable-diffusion-webui) from     
 AUTOMATIC1111/stable-diffusion-webui : https://github.com/AUTOMATIC1111/stable-diffusion-webui as a local server. We are connect with this via API
 
 - lllyasviel/ControlNet : https://github.com/lllyasviel/ControlNet
