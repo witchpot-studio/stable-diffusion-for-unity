@@ -26,7 +26,7 @@ namespace Witchpot.Editor.StableDiffusion
 
         private static void OnDelayCall()
         {
-            // UnityEngine.Debug.Log($"ZipInstaller InitializeOnLoad");
+            // UnityEngine.Debug.Log($"DependenciesInstaller OnDelayCall");
 
             // It invoke Awake
             if (instance) { }
@@ -60,7 +60,7 @@ namespace Witchpot.Editor.StableDiffusion
 #endif
         private static void SetUninstalled()
         {
-            instance._uninstalled = true;
+            instance._uninstalled_ = true;
             Save();
         }
 
@@ -69,7 +69,7 @@ namespace Witchpot.Editor.StableDiffusion
 #endif
         private static void ResetUninstalled()
         {
-            instance._uninstalled = false;
+            instance._uninstalled_ = false;
             Save();
         }
 
@@ -123,8 +123,9 @@ namespace Witchpot.Editor.StableDiffusion
         private string _destinationRelationalPath; // = "Witchpot";
 
 #pragma warning disable CS0414
+        // It doesn't work correctly if the name is _uninstalled
         [SerializeField]
-        private bool _uninstalled; // = false;
+        private bool _uninstalled_; // = false;
 #pragma warning restore CS0414
 
         public string ZipAbsolutePath => Path.Combine(GetRootPath(_zipRootType), _zipRelationalPath);
@@ -132,8 +133,10 @@ namespace Witchpot.Editor.StableDiffusion
 
         private void OnEnable()
         {
+            // UnityEngine.Debug.Log($"DependenciesInstaller OnEnable : {DependenciesInstalled.Flag} {_uninstalled_}");
+
 #if !WITCHPOT_DEVELOPMENT
-            if (!DependenciesInstalled.Flag && !_uninstalled)
+            if (!DependenciesInstalled.Flag && !_uninstalled_)
             {
                 InstallDependencies();
             }
@@ -142,6 +145,7 @@ namespace Witchpot.Editor.StableDiffusion
 
         private void OnDisable()
         {
+            // It is bad, because generating .asset file after package deleted
             // Save();
         }
 
