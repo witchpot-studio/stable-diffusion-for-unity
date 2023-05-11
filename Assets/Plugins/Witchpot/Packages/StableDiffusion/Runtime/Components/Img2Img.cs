@@ -22,6 +22,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
         [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
         [SerializeField] private ImageSource _imageSource = ImageSource.Texture;
+        [SerializeField] private Camera _camera;
         [SerializeField] private Texture2D _image;
         [SerializeField, TextArea] private string _prompt;
         [SerializeField, TextArea] private string _negativePrompt;
@@ -31,7 +32,8 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField] private float _cfgScale = 7;
         [SerializeField][Range(0.0f, 1.0f)] public float _denoisingStrength = 0.75f;
         [SerializeField] private long _seed = -1;
-        [SerializeField] private ImagePorter.ImageType _exportType = ImagePorter.ImageType.PNG;
+        [SerializeField, Range(1, 100)] private int _batchCount = 1;
+        //[SerializeField] private ImagePorter.ImageType _exportType = ImagePorter.ImageType.PNG;
         [HideInInspector][SerializeField] private int _selectedSampler;
         [HideInInspector][SerializeField] private int _selectedModel;
         [HideInInspector][SerializeField] private int _selectedLoraModel;
@@ -76,6 +78,14 @@ namespace Witchpot.Runtime.StableDiffusion
             set { _selectedLoraModel = value; }
         }
 
+        private void OnValidate()
+        {
+            if (_camera == null)
+            {
+                _camera = Camera.main;
+            }
+        }
+
         public void OnClickGenerateButton()
         {
             if (_generating)
@@ -114,9 +124,9 @@ namespace Witchpot.Runtime.StableDiffusion
 
                 case ImageSource.Camera:
                     {
-                        if (Camera.main == null)
+                        if (_camera == null)
                         {
-                            Debug.LogError("Img2Img : Camera not exist.", this);
+                            Debug.LogError("Img2Img : Camera isn't set.", this);
                             return;
                         }
 
@@ -131,7 +141,14 @@ namespace Witchpot.Runtime.StableDiffusion
                     return;
             }
 
-            GenerateImage(texture.EncodeToPNG()).Forget();
+            if (_batchCount == 1)
+            {
+                GenerateSingle(texture.EncodeToPNG()).Forget();
+            }
+            else if (_batchCount > 1)
+            {
+                GenerateLoop(texture.EncodeToPNG(), _batchCount).Forget();
+            }
         }
 
         private Texture2D CreateCameraViewImage()
@@ -140,117 +157,119 @@ namespace Witchpot.Runtime.StableDiffusion
             var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
             render.antiAliasing = 8;
             var texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
-            var cemara = Camera.main;
 
             try
             {
-                cemara.targetTexture = render;
-                cemara.Render();
+                _camera.targetTexture = render;
+                _camera.Render();
                 RenderTexture.active = render;
                 texture.ReadPixels(new Rect(0, 0, size.x, size.y), 0, 0);
                 texture.Apply();
             }
             finally
             {
-                cemara.targetTexture = null;
+                _camera.targetTexture = null;
                 RenderTexture.active = null;
             }
 
             return texture;
         }
 
-        private async ValueTask GenerateImage(byte[] img)
+        private async ValueTask GenerateSingle(byte[] img)
         {
-
             if (EditorApplication.isCompiling) return;
+
+            Debug.Log("Image generating started.");
 
             try
             {
                 _generating = true;
 
-                using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Options(_stableDiffusionWebUISettings))
+                await GenerateImage(img, true);
+            }
+            finally
+            {
+                _generating = false;
+            }
+        }
+
+        private async ValueTask GenerateLoop(byte[] img, int count)
+        {
+            if (EditorApplication.isCompiling) return;
+
+            Debug.Log("Image generating started.");
+
+            try
+            {
+                _generating = true;
+
+                for (int i = 0; i < count; i++)
                 {
-                    var body = client.GetRequestBody();
-
-                    body.sd_model_checkpoint = ModelsList[_selectedModel];
-
-                    var responses = await client.SendRequestAsync(body);
-                }
-
-                using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Img2Img(_stableDiffusionWebUISettings))
-                {
-                    var body = client.GetRequestBody(_stableDiffusionWebUISettings);
-
-                    body.prompt = _prompt;
-                    body.steps = _steps;
-                    body.negative_prompt = _negativePrompt;
-                    body.seed = _seed;
-                    body.cfg_scale = _cfgScale;
-                    body.denoising_strength = _denoisingStrength;
-                    body.width = _width;
-                    body.height = _height;
-
-                    body.SetImage(img);
-
-                    var responses = await client.SendRequestAsync(body);
-
-                    using (var clientInfo = new StableDiffusionWebUIClient.Post.SdApi.V1.PngInfo(_stableDiffusionWebUISettings))
-                    {
-                        var bodyInfo = clientInfo.GetRequestBody();
-                        bodyInfo.SetImage(responses.GetImage());
-
-                        var responsesInfo = await clientInfo.SendRequestAsync(bodyInfo);
-
-                        var dic = responsesInfo.Parse();
-
-                        Debug.Log($"Seed:{dic.GetValueOrDefault("Seed")}");
-                    }
-
-                    var texture = ImagePorter.GenerateTexture(responses.GetImage());
-
-                    if (ImagePorter.SaveImage(texture, _exportType))
-                    {
-                        Debug.Log("Image generating completed.");
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Faled to save generated image.");
-                    }
-
-                    Image image = GetComponent<Image>();
-                    if (image != null)
-                    {
-                        if (ImagePorter.LoadIntoImage(texture, image))
-                        {
-                            Debug.Log($"Image loaded in {image.name}.", image);
-                        }
-                        return;
-                    }
-
-                    RawImage rawImage = GetComponent<RawImage>();
-                    if (rawImage != null)
-                    {
-                        if (ImagePorter.LoadIntoImage(texture, rawImage))
-                        {
-                            Debug.Log($"Image loaded in {image.name}.", image);
-                        }
-                        return;
-                    }
-
-                    Renderer renderer = GetComponent<Renderer>();
-                    if (renderer != null)
-                    {
-                        if (ImagePorter.LoadIntoImage(texture, renderer))
-                        {
-                            Debug.Log($"Image loaded in {renderer.name}.", renderer);
-                            return;
-                        }
-                    }
+                    await GenerateImage(img, false);
                 }
             }
             finally
             {
                 _generating = false;
+            }
+        }
+
+        private async ValueTask GenerateImage(byte[] img, bool load = false)
+        {
+            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Options(_stableDiffusionWebUISettings))
+            {
+                var body = client.GetRequestBody();
+
+                body.sd_model_checkpoint = ModelsList[_selectedModel];
+
+                var responses = await client.SendRequestAsync(body);
+            }
+
+            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Img2Img(_stableDiffusionWebUISettings))
+            {
+                var body = client.GetRequestBody(_stableDiffusionWebUISettings);
+
+                body.prompt = _prompt;
+                body.steps = _steps;
+                body.negative_prompt = _negativePrompt;
+                body.seed = _seed;
+                body.cfg_scale = _cfgScale;
+                body.denoising_strength = _denoisingStrength;
+                body.width = _width;
+                body.height = _height;
+
+                body.SetImage(img);
+
+                var responses = await client.SendRequestAsync(body);
+
+                using (var clientInfo = new StableDiffusionWebUIClient.Post.SdApi.V1.PngInfo(_stableDiffusionWebUISettings))
+                {
+                    var bodyInfo = clientInfo.GetRequestBody();
+                    bodyInfo.SetImage(responses.GetImage());
+
+                    var responsesInfo = await clientInfo.SendRequestAsync(bodyInfo);
+
+                    var dic = responsesInfo.Parse();
+
+                    Debug.Log($"Seed:{dic.GetValueOrDefault("Seed")}");
+                }
+
+                var texture = ImagePorter.GenerateTexture(responses.GetImage());
+
+                if (ImagePorter.SavePngImage(responses.GetImage()))
+                //if (ImagePorter.SaveImage(texture, _exportType))
+                {
+                    Debug.Log("Image generating completed.");
+                }
+                else
+                {
+                    Debug.LogWarning("Faled to save generated image.");
+                }
+
+                if (load)
+                {
+                    ImagePorter.LoadIntoImage(texture, this);
+                }
             }
         }
 #endif
