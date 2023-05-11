@@ -17,15 +17,27 @@ namespace Witchpot.Editor.StableDiffusion
 #endif
         public static void Export()
         {
+            Debug.Log($"Start Package Exporting...");
+
             if (DependenciesInstaller.UninstalledFlag)
             {
+                Debug.Log($"Reset UninstaledFlag to export");
                 DependenciesInstaller.ResetUninstalled();
-                ExportPackage();
-                DependenciesInstaller.SetUninstalled();
+
+                AssetDatabase.Refresh();
+
+                EditorApplication.delayCall += () =>
+                {
+                    ExportPackage();
+                    DependenciesInstaller.SetUninstalled();
+                };
             }
             else
             {
-                ExportPackage();
+                EditorApplication.delayCall += () =>
+                {
+                    ExportPackage();
+                };
             }
         }
 
@@ -36,6 +48,8 @@ namespace Witchpot.Editor.StableDiffusion
                 "stable-diffusion-for-unity.unitypackage",
                 ExportPackageOptions.Recurse
             );
+
+            Debug.Log($"Done Export");
         }
     }
 }

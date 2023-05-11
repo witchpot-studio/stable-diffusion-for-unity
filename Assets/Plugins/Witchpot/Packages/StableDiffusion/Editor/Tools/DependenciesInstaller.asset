@@ -16,4 +16,5 @@ MonoBehaviour:
   _zipRelationalPath: Assets\Plugins\Witchpot\Packages\StableDiffusion\Installers\StableDiffusion.WebUI\Package.zip
   _destinationRootType: 2
   _destinationRelationalPath: Witchpot
+  _destinationRelationalBatPath: Witchpot\StableDiffusion.WebUI@1.2.0\run.bat
   _uninstalled_: 0

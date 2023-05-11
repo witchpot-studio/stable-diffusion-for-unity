@@ -14,6 +14,8 @@ namespace Witchpot.Editor.StableDiffusion
     {
         public const string FilePath = "Witchpot\\DependenciesInstalled.asset";
 
+        public static bool Flag { get => instance._dependenciesInstalled; set => instance._dependenciesInstalled = value; }
+
         private static void Save()
         {
             instance.Save(true);
@@ -36,11 +38,10 @@ namespace Witchpot.Editor.StableDiffusion
 #endif
         public static void CheckInstalled()
         {
-            Debug.Log($"DependenciesInstalled.Flag : {instance.Flag}");
+            Debug.Log($"DependenciesInstalled.Flag : {Flag}");
         }
 
         [SerializeField]
         private bool _dependenciesInstalled = false;
-        public bool Flag { get => _dependenciesInstalled; set => _dependenciesInstalled = value; }
     }
 }
