@@ -12,11 +12,16 @@ namespace Witchpot.Editor.StableDiffusion
     {
         private static string Path = "Preferences/StableDiffusion For Unity";
 
+        private static GUILayoutOption m_Hight = GUILayout.Height(20);
+        private static GUILayoutOption m_LineHight = GUILayout.Height(3);
+
+        private static float m_Space = 10.0f;
+
         class Styles
         {
             public static GUIContent use = new GUIContent("Using StableDiffusion");
-            public static GUIContent internal_ = new GUIContent("Internal StableDiffusion Bat Path");
-            public static GUIContent external = new GUIContent("External StableDiffusion Bat Path");
+            public static GUIContent internal_ = new GUIContent("Internal Bat Path");
+            public static GUIContent external = new GUIContent("External Bat Path");
         }
 
         // Register the SettingsProvider
@@ -60,6 +65,23 @@ namespace Witchpot.Editor.StableDiffusion
             // This function is called when the user clicks on the MyCustom element in the Settings window.
         }
 
+        private void Separater(string label)
+        {
+            GUILayout.Space(m_Space);
+            using (new EditorGUILayout.HorizontalScope(m_Hight))
+            {
+                GUILayout.Space(3);
+                GUILayout.Label(label, EditorStyles.boldLabel, GUILayout.Width(160));
+
+                using (new EditorGUILayout.VerticalScope(m_Hight))
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box(string.Empty, GUILayout.ExpandWidth(true), m_LineHight); // ----------
+                    GUILayout.FlexibleSpace();
+                }
+            }
+        }
+
         public override void OnGUI(string searchContext)
         {
             m_CustomSettings = WebUISingleton.GetSerialized();
@@ -72,10 +94,55 @@ namespace Witchpot.Editor.StableDiffusion
             // Use IMGUI to display UI:
             EditorGUILayout.PropertyField(m_UsingStableDiffusion, Styles.use);
 
+            if (WebUISingleton.Status.ServerReady)
+            {
+                if (GUILayout.Button("Stop Server"))
+                {
+                    WebUISingleton.Stop();
+                }
+
+            }
+            else if (WebUISingleton.Status.ServerStarted)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    GUILayout.Button("Server Starting ... ");
+                }
+            }
+            else
+            {
+                if (GUILayout.Button("Start Server"))
+                {
+                    WebUISingleton.Start();
+                }
+            }
+
+            Separater("Internal StableDiffusion");
+
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUILayout.TextField(Styles.internal_, DependenciesInstaller.instance.DestinationBatPath);
             }
+
+            using (new EditorGUILayout.HorizontalScope(m_Hight))
+            {
+                if (GUILayout.Button("(Re)Install"))
+                {
+                    DependenciesInstaller.Install();
+                }
+
+                if (GUILayout.Button("Uninstall"))
+                {
+                    DependenciesInstaller.Uninstall();
+                }
+
+                if (GUILayout.Button("Open Dir"))
+                {
+                    DependenciesInstaller.Open();
+                }
+            }
+
+            Separater("External StableDiffusion");
 
             EditorGUILayout.PropertyField(m_ExternalPath, Styles.external);
 

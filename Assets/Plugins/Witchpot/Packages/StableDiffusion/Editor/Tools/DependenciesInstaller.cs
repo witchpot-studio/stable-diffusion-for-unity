@@ -37,19 +37,19 @@ namespace Witchpot.Editor.StableDiffusion
         }
 
         [MenuItem("Witchpot/Utility/(Re)Install Dependencies", priority = 10)]
-        private static void Install()
+        public static void Install()
         {
             instance.InstallDependencies();
         }
 
         [MenuItem("Witchpot/Utility/Uninstall Dependencies", priority = 11)]
-        private static void Uninstall()
+        public static void Uninstall()
         {
             instance.UninstallDependencies();
         }
 
         [MenuItem("Witchpot/Utility/Open Installed Dir", priority = 12)]
-        private static void Open()
+        public static void Open()
         {
             instance.OpenInstalledDir();
         }
