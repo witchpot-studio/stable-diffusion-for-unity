@@ -23,18 +23,18 @@ Please see [Documents](https://docs.witchpot.com/) for more informations.
 2. Import the unitypackage to your unity project.    
 3. Install stable diffusion webui    
 ![](Images/preferences_sd4u.png)
-    We have options which webui you use for this project
+    We have options for the webui which you use for this project
     - Internal StableDiffusion    
-    Default. Witchpot's custom webui.     
-    Automatically install stable diffusion when you select Internal.
+    This is the Default option. Witchpot's custom webui.     
+    StableDiffusion will be automatically installed in C drive User folder.
     - External StableDiffusion    
-    You can use your own local installed webui.    
-    Requirement: Forked webui from AUTOMATIC1111    
-    Enable the webui API mode with add below option for the bat file    
+    You can use your own locally installed webui.    
+    Requirement: You need to preinstalled forked webui from AUTOMATIC1111    
+    To enable the webui api mode, add the following option to the bat file    
         ```
         set COMMANDLINE_ARGS=--api
         ```    
-        Please select webui-user.bat path in External bat path.    
+        Please specify the path of the webui-user.bat path for the External bat path.    
 4. Start Server from Menu bar > Witchpot > StartServer     
 ![](Images/startserver.png)
 5. (If you use Internal webui) Wait until installation finished on CommandPrompt: local URL shown when the installation finished    
