@@ -706,24 +706,36 @@ namespace Witchpot.Runtime.StableDiffusion
 
                                 var lines = info.Split('\n');
 
-                                if (lines.Length >= 2)
+                                if (lines.Length == 2)
                                 {
                                     dic.Add("Prompt", lines[0]);
 
-                                    var items = lines[1].Split(", ");
+                                    ParseItems(dic, lines[1]);
+                                }
+                                else if (lines.Length == 3)
+                                {
+                                    dic.Add("Prompt", lines[0]);
+                                    dic.Add("Negative Prompt", lines[1]);
 
-                                    foreach (var item in items)
-                                    {
-                                        var split = item.Split(": ");
-
-                                        if (split.Length >= 2)
-                                        {
-                                            dic.Add(split[0], split[1]);
-                                        }
-                                    }
+                                    ParseItems(dic, lines[2]);
                                 }
 
                                 return dic;
+                            }
+
+                            private void ParseItems(Dictionary<string, string> dic, string line)
+                            {
+                                var items = line.Split(", ");
+
+                                foreach (var item in items)
+                                {
+                                    var split = item.Split(": ");
+
+                                    if (split.Length >= 2)
+                                    {
+                                        dic.Add(split[0], split[1]);
+                                    }
+                                }
                             }
                         }
 

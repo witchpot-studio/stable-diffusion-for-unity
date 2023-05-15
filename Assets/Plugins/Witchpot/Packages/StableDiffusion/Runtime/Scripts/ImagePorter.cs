@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -23,6 +24,32 @@ namespace Witchpot.Runtime.StableDiffusion
 
         private static string DefaultDirPath => $"{Application.streamingAssetsPath}/StableDiffusion";
         private static string DefaultFileName => Guid.NewGuid().ToString();
+
+        public static bool SavePngImage(byte[] data, string dir, string filename)
+        {
+            if (data == null || string.IsNullOrEmpty(dir) || string.IsNullOrEmpty(filename))
+            {
+                throw new ArgumentNullException();
+            }
+
+            if (!CreateDirectoryRecursive(dir))
+            {
+                Debug.LogError($"Failed to create directory. aborting.");
+                return false;
+            }
+
+            var path = Path.Combine(dir, $"{filename}.png");
+
+            File.WriteAllBytes(path, data);
+            AssetDatabase.Refresh();
+
+            return true;
+        }
+
+        public static bool SavePngImage(byte[] data)
+        {
+            return SavePngImage(data, DefaultDirPath, DefaultFileName);
+        }
 
         public static Texture2D GenerateTexture(byte[] bytes)
         {
@@ -129,6 +156,41 @@ namespace Witchpot.Runtime.StableDiffusion
                 Debug.LogError(e.Message + "\n\n" + e.StackTrace);
                 return false;
             }
+        }
+
+        public static bool LoadIntoImage(Texture2D texture, Component item)
+        {
+            Image image = item.GetComponent<Image>();
+            if (image != null)
+            {
+                if (LoadIntoImage(texture, image))
+                {
+                    Debug.Log($"Image loaded in {image.name}.", image);
+                    return true;
+                }
+            }
+
+            RawImage rawImage = item.GetComponent<RawImage>();
+            if (rawImage != null)
+            {
+                if (LoadIntoImage(texture, rawImage))
+                {
+                    Debug.Log($"Image loaded in {rawImage.name}.", rawImage);
+                    return true;
+                }
+            }
+
+            Renderer renderer = item.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                if (LoadIntoImage(texture, renderer))
+                {
+                    Debug.Log($"Image loaded in {renderer.name}.", renderer);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool LoadIntoImage(Texture2D texture, Image image)
