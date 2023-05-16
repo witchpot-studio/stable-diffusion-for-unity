@@ -8,15 +8,19 @@ using System.IO;
 namespace Witchpot.Editor.StableDiffusion
 {
     [InitializeOnLoad]
-    [FilePath("Assets/Plugins/Witchpot/Packages/StableDiffusion/Editor/Tools/DependenciesInstaller.asset", FilePathAttribute.Location.ProjectFolder)]
+    [FilePath(FilePath, FilePathAttribute.Location.ProjectFolder)]
     public class DependenciesInstaller : ScriptableSingleton<DependenciesInstaller>
     {
+        public const string FilePath = "Assets/Plugins/Witchpot/Packages/StableDiffusion/Editor/Tools/DependenciesInstaller.asset";
+
         public enum RootType
         {
             None,
             UnityProject,
             SystemUserProfile
         }
+
+        public static bool UninstalledFlag => instance._uninstalled_; 
 
         static DependenciesInstaller()
         {
@@ -33,19 +37,19 @@ namespace Witchpot.Editor.StableDiffusion
         }
 
         [MenuItem("Witchpot/Utility/(Re)Install Dependencies", priority = 10)]
-        private static void Install()
+        public static void Install()
         {
             instance.InstallDependencies();
         }
 
         [MenuItem("Witchpot/Utility/Uninstall Dependencies", priority = 11)]
-        private static void Uninstall()
+        public static void Uninstall()
         {
             instance.UninstallDependencies();
         }
 
         [MenuItem("Witchpot/Utility/Open Installed Dir", priority = 12)]
-        private static void Open()
+        public static void Open()
         {
             instance.OpenInstalledDir();
         }
@@ -58,7 +62,7 @@ namespace Witchpot.Editor.StableDiffusion
 #if WITCHPOT_DEVELOPMENT
         [MenuItem("Witchpot/Develop/Dependencies Installer/Set Uninstalled Flag")]
 #endif
-        private static void SetUninstalled()
+        public static void SetUninstalled()
         {
             instance._uninstalled_ = true;
             Save();
@@ -67,7 +71,7 @@ namespace Witchpot.Editor.StableDiffusion
 #if WITCHPOT_DEVELOPMENT
         [MenuItem("Witchpot/Develop/Dependencies Installer/Reset Uninstalled Flag")]
 #endif
-        private static void ResetUninstalled()
+        public static void ResetUninstalled()
         {
             instance._uninstalled_ = false;
             Save();
@@ -122,6 +126,9 @@ namespace Witchpot.Editor.StableDiffusion
         [SerializeField]
         private string _destinationRelationalPath; // = "Witchpot";
 
+        [SerializeField]
+        private string _destinationRelationalBatPath = "Witchpot\\StableDiffusion.WebUI@1.2.0\\run.bat";
+
 #pragma warning disable CS0414
         // It doesn't work correctly if the name is _uninstalled
         [SerializeField]
@@ -130,6 +137,7 @@ namespace Witchpot.Editor.StableDiffusion
 
         public string ZipAbsolutePath => Path.Combine(GetRootPath(_zipRootType), _zipRelationalPath);
         public string DestinationAbsolutePath => Path.Combine(GetRootPath(_destinationRootType), _destinationRelationalPath);
+        public string DestinationBatPath => Path.Combine(GetRootPath(_destinationRootType), _destinationRelationalBatPath);
 
         private void OnEnable()
         {
@@ -170,6 +178,7 @@ namespace Witchpot.Editor.StableDiffusion
 
                 // Destination
                 var destinationAbsolutePath = DestinationAbsolutePath;
+                var destinationBatPath = DestinationBatPath;
 
                 if (Directory.Exists(destinationAbsolutePath))
                 {
@@ -198,10 +207,12 @@ namespace Witchpot.Editor.StableDiffusion
 
                 Debug.Log($"Installation finished");
                 ResetUninstalled();
+
+                Preferences.Open();
             }
             finally
             {
-                DependenciesInstalled.SetInstalled();
+                DependenciesInstalled.SetDoneInitialInstall();
             }
         }
 
@@ -238,13 +249,12 @@ namespace Witchpot.Editor.StableDiffusion
 
                 Debug.Log($"Uninstallation finished");
                 SetUninstalled();
-                DependenciesInstalled.ResetInstalled();
+                DependenciesInstalled.ResetDoneInitialInstall();
             }
             else
             {
                 Debug.LogError($"Destination directory not found. Abort Uninstallation.");
                 SetUninstalled();
-                DependenciesInstalled.ResetInstalled();
             }
         }
 

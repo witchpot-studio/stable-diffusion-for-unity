@@ -18,6 +18,12 @@ namespace Witchpot.Editor.StableDiffusion
     [FilePath("Witchpot/WebUISingleton.asset", FilePathAttribute.Location.PreferencesFolder)]
     public class WebUISingleton : ScriptableSingleton<WebUISingleton>
     {
+        public enum StableDiffusionMode
+        {
+            Internal,
+            External
+        }
+
         #region Static
 
         [MenuItem("Witchpot/Start Server")]
@@ -39,6 +45,18 @@ namespace Witchpot.Editor.StableDiffusion
         }
 
         public static IWebUIStatus Status => instance._webUIStatus;
+
+        public static bool IsAvailable => instance != null;
+
+        public static SerializedObject GetSerialized()
+        {
+            if (instance.hideFlags.HasFlag(HideFlags.NotEditable))
+            {
+                instance.hideFlags -= HideFlags.NotEditable;
+            }
+
+            return new SerializedObject(instance);
+        }
 
         #endregion
 
@@ -67,6 +85,12 @@ namespace Witchpot.Editor.StableDiffusion
 
         [SerializeField]
         private List<int> _pidList = new List<int>();
+
+        [SerializeField]
+        private StableDiffusionMode _usingStableDiffusion = StableDiffusionMode.Internal;
+
+        [SerializeField]
+        private string _externalPath = string.Empty;
 
         private StringBuilder _Output = new StringBuilder();
 
@@ -107,7 +131,7 @@ namespace Witchpot.Editor.StableDiffusion
                     _ProcessName = "python";
                     _WorkingDirectory = string.Empty;
                     _FileName = EditorPaths.PYTHON_EXE_PATH;
-                    _Arguments = $"-u {EditorPaths.WEBUI_SCRIPT_PATH} {EditorPaths.WEBUI_SCRIPT_BAT_PATH}";
+                    _Arguments = $"-u {EditorPaths.WEBUI_SCRIPT_PATH}";
                     _Verb = string.Empty;
                     break;
 
@@ -118,7 +142,7 @@ namespace Witchpot.Editor.StableDiffusion
                     _ProcessName = "cmd";
                     _WorkingDirectory = string.Empty;
                     _FileName = "cmd.exe";
-                    _Arguments = $"/c {EditorPaths.WEBUI_SCRIPT_BAT_PATH}";
+                    _Arguments = $"/c";
                     _Verb = "RunAs";
                     break;
 
@@ -130,7 +154,7 @@ namespace Witchpot.Editor.StableDiffusion
                     _ProcessName = "python";
                     _WorkingDirectory = string.Empty;
                     _FileName = EditorPaths.PYTHON_EXE_PATH;
-                    _Arguments = $"{EditorPaths.WEBUI_SCRIPT_PATH} {EditorPaths.WEBUI_SCRIPT_BAT_PATH}";
+                    _Arguments = $"{EditorPaths.WEBUI_SCRIPT_PATH}";
                     _Verb = string.Empty;
                     break;
             }
@@ -451,6 +475,21 @@ namespace Witchpot.Editor.StableDiffusion
 
         #endregion
 
+        private string GetArgmentFull(string bat) => $"{_Arguments} {bat}";
+
+        private string GetBatPath()
+        {
+            switch (_usingStableDiffusion)
+            {
+                default:
+                case StableDiffusionMode.Internal:
+                    return DependenciesInstaller.instance.DestinationBatPath;
+
+                case StableDiffusionMode.External:
+                    return _externalPath;
+            }
+        }
+
         private void _Start()
         {
             var project = System.IO.Path.GetDirectoryName(Application.dataPath);
@@ -473,7 +512,7 @@ namespace Witchpot.Editor.StableDiffusion
             var process = new Process();
 
             process.StartInfo.FileName = _FileName;
-            process.StartInfo.Arguments = _Arguments;
+            process.StartInfo.Arguments = GetArgmentFull(GetBatPath());
             process.StartInfo.Verb = _Verb;
 
             process.StartInfo.UseShellExecute = _UseShellExecute;
