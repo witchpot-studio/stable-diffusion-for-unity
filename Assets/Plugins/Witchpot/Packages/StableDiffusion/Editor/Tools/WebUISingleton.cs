@@ -83,6 +83,7 @@ namespace Witchpot.Editor.StableDiffusion
         private string _Arguments;
         private string _Verb;
 
+        // HACK: the flag of server started or not
         [SerializeField]
         private List<int> _pidList = new List<int>();
 
@@ -311,7 +312,7 @@ namespace Witchpot.Editor.StableDiffusion
                 }
             }
 
-            // UDP Client
+            // HACK:UDP Client ver
             private static IPEndPoint _endPoint;
             private UdpClient _client;
             private bool _receiveEnabled = false;
