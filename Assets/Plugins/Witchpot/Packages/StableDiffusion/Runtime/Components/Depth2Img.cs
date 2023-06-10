@@ -18,8 +18,8 @@ namespace Witchpot.Runtime.StableDiffusion
     {
 #if UNITY_EDITOR
         [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
-        [SerializeField] private PipelineAssetLoader _assetLoader;
-        [SerializeField] private VolumeChanger _volumeChanger;
+        [SerializeField] private RenderPipelineAsset _pipelineAsset;
+        [SerializeField] private VolumeChanger _prefabVolumeChanger;
         [SerializeField] private Camera _camera;
         [SerializeField, TextArea] private string _prompt;
         [SerializeField, TextArea] private string _negativePrompt;
@@ -36,6 +36,8 @@ namespace Witchpot.Runtime.StableDiffusion
         [HideInInspector][SerializeField] private int _selectedModel;
         [HideInInspector][SerializeField] private int _selectedLoraModel;
         private bool _generating = false;
+
+        private PipelineAssetLoader _assetLoader = new PipelineAssetLoader();
 
         public string Prompt
         {
@@ -116,7 +118,7 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 Texture2D texture;
 
-                if (_assetLoader.SetPipeline())
+                if (_assetLoader.SetPipeline(_pipelineAsset))
                 {
                     texture = RenderDepthImage();
                 }
@@ -145,9 +147,11 @@ namespace Witchpot.Runtime.StableDiffusion
 
         private Texture2D RenderDepthImage()
         {
+            var changer = Instantiate(_prefabVolumeChanger);
+
             try
             {
-                _volumeChanger.SetVolumeStatus();
+                changer.SetVolumeStatus();
 
                 var size = new Vector2Int(_width, _height);
                 Texture2D texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
@@ -170,7 +174,9 @@ namespace Witchpot.Runtime.StableDiffusion
                 _camera.targetTexture = null;
                 RenderTexture.active = null;
 
-                _volumeChanger.ResetVolumeStatus();
+                changer.ResetVolumeStatus();
+
+                DestroyImmediate(changer.gameObject);
             }
         }
 

@@ -6,8 +6,7 @@ using UnityEngine.Rendering;
 
 namespace Witchpot.Runtime.StableDiffusion
 {
-    [Serializable]
-    public class VolumeChanger
+    public class VolumeChanger : MonoBehaviour
     {
         private struct VolumeAndStatus
         {
@@ -36,8 +35,6 @@ namespace Witchpot.Runtime.StableDiffusion
         {
             if (_volumeChanged) { ResetVolumeStatus(); }
 
-            _volume.enabled = true;
-
             var array = GameObject.FindObjectsByType<Volume>(FindObjectsSortMode.None);
 
             foreach (var volume in array)
@@ -55,8 +52,6 @@ namespace Witchpot.Runtime.StableDiffusion
         public void ResetVolumeStatus()
         {
             if (!_volumeChanged) { return; }
-
-            _volume.enabled = false;
 
             if (_volumeInScene.Count > 0)
             {

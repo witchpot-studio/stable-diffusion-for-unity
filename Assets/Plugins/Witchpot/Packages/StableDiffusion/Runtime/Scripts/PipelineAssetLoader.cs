@@ -7,30 +7,26 @@ using UnityEngine.Rendering.Universal;
 
 namespace Witchpot.Runtime.StableDiffusion
 {
-    [Serializable]
     public class PipelineAssetLoader
     {
-        [SerializeField]
-        private RenderPipelineAsset m_PipelineAsset;
-
         private RenderPipelineAsset m_PreviousPipelineAsset;
         private bool m_overrodeQualitySettings;
 
-        public bool SetPipeline()
+        public bool SetPipeline(RenderPipelineAsset asset)
         {
-            if (m_PipelineAsset == null) { return false; }
+            if (asset == null) { return false; }
             if (m_PreviousPipelineAsset != null) { ResetPipeline(); } 
 
-            if (QualitySettings.renderPipeline != null && QualitySettings.renderPipeline != m_PipelineAsset)
+            if (QualitySettings.renderPipeline != null && QualitySettings.renderPipeline != asset)
             {
                 m_PreviousPipelineAsset = QualitySettings.renderPipeline;
-                QualitySettings.renderPipeline = m_PipelineAsset;
+                QualitySettings.renderPipeline = asset;
                 m_overrodeQualitySettings = true;
             }
-            else if (GraphicsSettings.renderPipelineAsset != m_PipelineAsset)
+            else if (GraphicsSettings.renderPipelineAsset != asset)
             {
                 m_PreviousPipelineAsset = GraphicsSettings.renderPipelineAsset;
-                GraphicsSettings.renderPipelineAsset = m_PipelineAsset;
+                GraphicsSettings.renderPipelineAsset = asset;
                 m_overrodeQualitySettings = false;
             }
 
