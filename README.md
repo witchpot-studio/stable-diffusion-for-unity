@@ -42,11 +42,11 @@ Please see [Documents](https://docs.witchpot.com/) for more informations.
 6. Confirm 2DStageDemo scene    
     Assets/Plugins/Witchpot/Packages/StableDiffusion/Example/Demo/Scenes/2DStageDemo
 7. Generate Depth2Img     
-    Generate image from Depth2Img component.    
-    When you use the Depth2Img component attached yourself in your scene, please check PipelineAsset/PrefabVolumeChanger is set.    
-    If blank, set URP-Depth to PipelineAsset and VolumeForDepth prefab to PrefabVolumeChanger.    
-    Both are in Assets/Plugins/Witchpot/Packages/StableDiffusion/Runtime/Settings.    
+    Generate image from Depth2Img component.        
 ![](Images/depth2img.png)
+    Please check PipelineAsset/PrefabVolumeChanger is set when you use the Depth2Img component.    
+    If blank, set URP-Depth to PipelineAsset and VolumeForDepth prefab to PrefabVolumeChanger.    
+    Both are in Assets/Plugins/Witchpot/Packages/StableDiffusion/Runtime/Settings.
 
 ## Contributing
 In Preparation.
