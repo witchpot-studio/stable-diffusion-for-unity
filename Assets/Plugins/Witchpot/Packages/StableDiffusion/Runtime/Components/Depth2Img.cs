@@ -18,6 +18,8 @@ namespace Witchpot.Runtime.StableDiffusion
     {
 #if UNITY_EDITOR
         [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
+        [SerializeField] private RenderPipelineAsset _pipelineAsset;
+        [SerializeField] private VolumeChanger _prefabVolumeChanger;
         [SerializeField] private Camera _camera;
         [SerializeField, TextArea] private string _prompt;
         [SerializeField, TextArea] private string _negativePrompt;
@@ -34,6 +36,8 @@ namespace Witchpot.Runtime.StableDiffusion
         [HideInInspector][SerializeField] private int _selectedModel;
         [HideInInspector][SerializeField] private int _selectedLoraModel;
         private bool _generating = false;
+
+        private PipelineAssetLoader _assetLoader = new PipelineAssetLoader();
 
         public string Prompt
         {
@@ -100,52 +104,80 @@ namespace Witchpot.Runtime.StableDiffusion
             }
         }
 
+        [ContextMenu("SaveDepthImage")]
+        public void SaveDepthImage()
+        {
+            var texture = CreateDepthImage();
+
+            ImagePorter.SavePngImage(texture.EncodeToPNG());
+        }
+
         private Texture2D CreateDepthImage()
         {
-            var pipeline = ((UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset);
-
-            FieldInfo propertyInfo = pipeline.GetType().GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
-            var scriptableRendererData = ((ScriptableRendererData[])propertyInfo?.GetValue(pipeline))?[0];
-            var rendererFeature = ScriptableRendererFeature.CreateInstance<MainRendererFeature>();
-            scriptableRendererData.rendererFeatures.Add(rendererFeature);
-            scriptableRendererData.SetDirty();
-
-            var volume = GameObject.FindFirstObjectByType<Volume>();
-            Depth depth = null;
-            volume.profile.TryGet<Depth>(out depth);
-
-            if (depth is null)
+            try
             {
-                depth = volume.profile.Add<Depth>();
-            }
+                Texture2D texture;
 
-            depth.active = true;
-            depth.weight.overrideState = true;
-            depth.weight.value = 1f;
-            var size = new Vector2Int(_width, _height);
-            var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-            render.antiAliasing = 8;
-            var texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
-            if (_camera == null) _camera = Camera.main;
+                if (_assetLoader.SetPipeline(_pipelineAsset))
+                {
+                    texture = RenderDepthImage();
+                }
+                else
+                {
+                    var pipeline = ((UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset);
+
+                    FieldInfo propertyInfo = pipeline.GetType().GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var scriptableRendererData = ((ScriptableRendererData[])propertyInfo?.GetValue(pipeline))?[0];
+                    var rendererFeature = ScriptableRendererFeature.CreateInstance<MainRendererFeature>();
+                    scriptableRendererData.rendererFeatures.Add(rendererFeature);
+                    scriptableRendererData.SetDirty();
+
+                    texture = RenderDepthImage();
+
+                    scriptableRendererData.rendererFeatures.Remove(rendererFeature);
+                }
+
+                return texture;
+            }
+            finally
+            {
+                _assetLoader.ResetPipeline();
+            }
+        }
+
+        private Texture2D RenderDepthImage()
+        {
+            var changer = Instantiate(_prefabVolumeChanger);
 
             try
             {
+                changer.SetVolumeStatus();
+
+                var size = new Vector2Int(_width, _height);
+                Texture2D texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
+
+                var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
+                render.antiAliasing = 8;
+                texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
+                if (_camera == null) _camera = Camera.main;
+
                 _camera.targetTexture = render;
                 _camera.Render();
                 RenderTexture.active = render;
                 texture.ReadPixels(new Rect(0, 0, size.x, size.y), 0, 0);
                 texture.Apply();
+    
+                return texture;
             }
             finally
             {
                 _camera.targetTexture = null;
                 RenderTexture.active = null;
+
+                changer.ResetVolumeStatus();
+
+                DestroyImmediate(changer.gameObject);
             }
-
-            volume.profile.Remove<Depth>();
-            scriptableRendererData.rendererFeatures.Remove(rendererFeature);
-
-            return texture;
         }
 
         private async ValueTask GenerateSingle(byte[] img)
