@@ -543,6 +543,8 @@ namespace Witchpot.Runtime.StableDiffusion
                             public int height = 540;
                             public float denoising_strength = 0.0f;
 
+                            public AlwaysonScripts alwayson_scripts;
+
                             public RequestBody(IDefault def)
                             {
                                 sampler_index = def.Sampler;
@@ -845,6 +847,58 @@ namespace Witchpot.Runtime.StableDiffusion
                         return base.SendRequestAsync<RequestBody, Responses>(body);
                     }
                 }
+            }
+        }
+
+        [Serializable]
+        public class AlwaysonScripts
+        {
+            public ControlNet controlnet;
+        }
+
+        [Serializable]
+        public class ControlNet
+        {
+            public ControlNetUnitRequest[] args;
+        }
+
+        [Serializable]
+        public class ControlNetUnitRequest
+        {
+            [Serializable]
+            public enum ResizeMode : int
+            {
+                JustResize = 0,
+                ScaleToFit = 1,
+                Envelope = 2,
+            }
+
+            [Serializable]
+            public enum ControlMode : int
+            {
+                Balanced = 0,
+                MyPromptIsMoreImportant = 1,
+                ControlNetIsMoreImportant = 2,
+            }
+
+            public string input_image = null;
+            public string mask = null;
+            public string module = "none";
+            public string model = "None";
+            public float weight = 1.0f;
+            public ResizeMode resize_mode = ResizeMode.ScaleToFit;
+            public bool lowvram = false;
+            public int processor_res = 64;
+            public float threshold_a = 64.0f;
+            public float threshold_b = 64.0f;
+            public float guidance_start = 0.0f;
+            public float guidance_end = 1.0f;
+            public ControlMode control_mode = ControlMode.Balanced;
+            public bool pixel_perfect = false;
+
+            public void SetImage(byte[] data)
+            {
+                input_image = Convert.ToBase64String(data);
             }
         }
     }

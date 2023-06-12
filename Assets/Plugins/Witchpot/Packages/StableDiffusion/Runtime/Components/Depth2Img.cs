@@ -32,9 +32,25 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField][Range(0.0f, 2.0f)] private float _weight = 1.0f;
         [SerializeField, Range(1, 100)] private int _batchCount = 1;
         //[SerializeField] private ImagePorter.ImageType _exportType = ImagePorter.ImageType.PNG;
-        [HideInInspector][SerializeField] private int _selectedSampler;
-        [HideInInspector][SerializeField] private int _selectedModel;
-        [HideInInspector][SerializeField] private int _selectedLoraModel;
+
+        [Serializable]
+        class ControlNetSettings
+        {
+            [SerializeField] [Range(0.0f, 2.0f)] public float _weight = 1.0f;
+            [SerializeField] public StableDiffusionWebUIClient.ControlNetUnitRequest.ResizeMode _resizeMode = StableDiffusionWebUIClient.ControlNetUnitRequest.ResizeMode.JustResize;
+            [SerializeField] public bool _lowVram = false;
+            [SerializeField] public int _processorRes = 64;
+            [SerializeField] [Range(0.0f, 1.0f)] public float _guidanceStart = 0.0f;
+            [SerializeField] [Range(0.0f, 1.0f)] public float _guidanceEnd = 1.0f;
+            [SerializeField] public StableDiffusionWebUIClient.ControlNetUnitRequest.ControlMode _controlMode = StableDiffusionWebUIClient.ControlNetUnitRequest.ControlMode.Balanced;
+            [SerializeField] public bool _pixcelPerfect = false;
+        }
+        [SerializeField] private ControlNetSettings _controlNetSettings = new();
+
+        [HideInInspector] [SerializeField] private int _selectedSampler;
+        [HideInInspector] [SerializeField] private int _selectedModel;
+        [HideInInspector] [SerializeField] private int _selectedLoraModel;
+
         private bool _generating = false;
 
         private PipelineAssetLoader _assetLoader = new PipelineAssetLoader();
@@ -230,11 +246,10 @@ namespace Witchpot.Runtime.StableDiffusion
                 var responses = await client.SendRequestAsync(body);
             }
 
-            using (var client = new StableDiffusionWebUIClient.Post.ControlNet.Txt2Img(_stableDiffusionWebUISettings))
+            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Txt2Img(_stableDiffusionWebUISettings))
             {
                 var body = client.GetRequestBody(_stableDiffusionWebUISettings);
 
-                body.controlnet_weight = _weight;
                 body.prompt = _prompt;
                 body.steps = _steps;
                 body.negative_prompt = _negativePrompt;
@@ -243,8 +258,25 @@ namespace Witchpot.Runtime.StableDiffusion
                 //body.denoising_strength = _denoisingStrength;
                 body.width = _width;
                 body.height = _height;
+                body.sampler_index = SamplersList[SelectedSampler];
 
-                body.SetImage(depth);
+                var controlnet_unit = new StableDiffusionWebUIClient.ControlNetUnitRequest()
+                {
+                    model = "control_v11f1p_sd15_depth_fp16 [4b72d323]",
+                    weight = _controlNetSettings._weight,
+                    resize_mode = _controlNetSettings._resizeMode,
+                    lowvram = _controlNetSettings._lowVram,
+                    processor_res = _controlNetSettings._processorRes,
+                    guidance_start = _controlNetSettings._guidanceStart,
+                    guidance_end = _controlNetSettings._guidanceEnd,
+                    control_mode = _controlNetSettings._controlMode,
+                    pixel_perfect = _controlNetSettings._pixcelPerfect,
+                };
+                controlnet_unit.SetImage(depth);
+
+                body.alwayson_scripts = new StableDiffusionWebUIClient.AlwaysonScripts();
+                body.alwayson_scripts.controlnet = new StableDiffusionWebUIClient.ControlNet();
+                body.alwayson_scripts.controlnet.args = new StableDiffusionWebUIClient.ControlNetUnitRequest[] { controlnet_unit };
 
                 var responses = await client.SendRequestAsync(body);
 
