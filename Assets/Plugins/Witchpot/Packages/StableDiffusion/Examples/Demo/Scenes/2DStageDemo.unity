@@ -912,8 +912,8 @@ MonoBehaviour:
   _stableDiffusionWebUISettings: {fileID: 11400000, guid: 44c0a24ec1fd6d548a0862fa02c7b539,
     type: 2}
   _pipelineAsset: {fileID: 11400000, guid: 722591999ba1e6c4d8b0d4444cc1347b, type: 2}
-  _prefabVolumeChanger: {fileID: 4314036974411532305, guid: 9d7f450421b4508478c5c13619910500,
-    type: 3}
+  _mainRendererFeature: {fileID: -880672467421428833, guid: a98b8f1ad9b24f64badc78abda4c10f2,
+    type: 2}
   _camera: {fileID: 961739752}
   _prompt: icestage, 2D side scroller game stage, level design<lora:witchpot-icestage-sd-1-5:1>
   _negativePrompt: character, enemy
@@ -922,7 +922,6 @@ MonoBehaviour:
   _steps: 50
   _cfgScale: 10
   _seed: -1
-  _weight: 1
   _batchCount: 1
   _controlNetSettings:
     _weight: 2

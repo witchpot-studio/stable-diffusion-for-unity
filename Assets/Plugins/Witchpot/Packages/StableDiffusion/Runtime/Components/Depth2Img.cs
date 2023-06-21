@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UI;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -19,7 +18,7 @@ namespace Witchpot.Runtime.StableDiffusion
 #if UNITY_EDITOR
         [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
         [SerializeField] private RenderPipelineAsset _pipelineAsset;
-        [SerializeField] private VolumeChanger _prefabVolumeChanger;
+        [SerializeField] private MainRendererFeature _mainRendererFeature;
         [SerializeField] private Camera _camera;
         [SerializeField, TextArea] private string _prompt;
         [SerializeField, TextArea] private string _negativePrompt;
@@ -29,7 +28,6 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField] private float _cfgScale = 7;
         //[SerializeField][Range(0.0f, 1.0f)] public float _denoisingStrength = 0.0f;
         [SerializeField] private long _seed = -1;
-        [SerializeField][Range(0.0f, 2.0f)] private float _weight = 1.0f;
         [SerializeField, Range(1, 100)] private int _batchCount = 1;
         //[SerializeField] private ImagePorter.ImageType _exportType = ImagePorter.ImageType.PNG;
 
@@ -94,7 +92,7 @@ namespace Witchpot.Runtime.StableDiffusion
             set { _selectedLoraModel = value; }
         }
 
-        public void OnClickGenerateButton()
+        public async ValueTask OnClickGenerateButton()
         {
             if (_generating)
             {
@@ -108,7 +106,7 @@ namespace Witchpot.Runtime.StableDiffusion
                 return;
             }
 
-            var texture = CreateDepthImage();
+            var texture = await CreateDepthImage();
 
             if (_batchCount == 1)
             {
@@ -121,14 +119,22 @@ namespace Witchpot.Runtime.StableDiffusion
         }
 
         [ContextMenu("SaveDepthImage")]
-        public void SaveDepthImage()
+        public async ValueTask SaveDepthImage()
         {
-            var texture = CreateDepthImage();
+            var texture = await CreateDepthImage();
 
             ImagePorter.SavePngImage(texture.EncodeToPNG());
+
+            // ImagePorter.LoadIntoImage(texture, this);
         }
 
-        private Texture2D CreateDepthImage()
+        [ContextMenu("RemoveGenerateingFlag")]
+        public void RemoveGenerateingFlag()
+        {
+            _generating = false;
+        }
+
+        private async ValueTask<Texture2D> CreateDepthImage()
         {
             try
             {
@@ -136,10 +142,18 @@ namespace Witchpot.Runtime.StableDiffusion
 
                 if (_assetLoader.SetPipeline(_pipelineAsset))
                 {
+                    EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+                    await Task.Delay(1000);
+
                     texture = RenderDepthImage();
                 }
                 else
                 {
+                    EditorApplication.ExecuteMenuItem("Window/General/Game");
+
+                    await Task.Delay(1000);
+
                     var pipeline = ((UniversalRenderPipelineAsset)GraphicsSettings.renderPipelineAsset);
 
                     FieldInfo propertyInfo = pipeline.GetType().GetField("m_RendererDataList", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -163,22 +177,26 @@ namespace Witchpot.Runtime.StableDiffusion
 
         private Texture2D RenderDepthImage()
         {
-            var changer = Instantiate(_prefabVolumeChanger);
+            var size = new Vector2Int(_width, _height);
+
+            //var render = new RenderTexture(size.x, size.y, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat); 
+            render.antiAliasing = 8;
+
+            var texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
+
+            if (_camera == null) _camera = Camera.main;
+
+            var bufferTT = _camera.targetTexture;
+            var bufferRT = RenderTexture.active;
 
             try
             {
-                changer.SetVolumeStatus();
-
-                var size = new Vector2Int(_width, _height);
-                Texture2D texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
-
-                var render = new RenderTexture(size.x, size.y, 24, UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32B32A32_SFloat);
-                render.antiAliasing = 8;
-                texture = new Texture2D(size.x, size.y, TextureFormat.RGB24, false);
-                if (_camera == null) _camera = Camera.main;
+                _mainRendererFeature.SetRenderToTexture();
 
                 _camera.targetTexture = render;
                 _camera.Render();
+
                 RenderTexture.active = render;
                 texture.ReadPixels(new Rect(0, 0, size.x, size.y), 0, 0);
                 texture.Apply();
@@ -187,12 +205,12 @@ namespace Witchpot.Runtime.StableDiffusion
             }
             finally
             {
-                _camera.targetTexture = null;
-                RenderTexture.active = null;
+                _camera.targetTexture = bufferTT;
+                RenderTexture.active = bufferRT;
 
-                changer.ResetVolumeStatus();
+                RenderTexture.DestroyImmediate(render);
 
-                DestroyImmediate(changer.gameObject);
+                _mainRendererFeature.SetRenderToScreen();
             }
         }
 
@@ -311,5 +329,5 @@ namespace Witchpot.Runtime.StableDiffusion
             }
         }
 #endif
-    }
+        }
 }

@@ -62,7 +62,7 @@ namespace Witchpot.Editor.StableDiffusion
             {
                 if (GUILayout.Button("Generate"))
                 {
-                    depth2img.OnClickGenerateButton();
+                    depth2img.OnClickGenerateButton().Forget();
                 }
             }
             else if (WebUISingleton.Status.ServerStarted)
