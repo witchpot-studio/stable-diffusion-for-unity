@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 19c94fd2f73bf184995df0af7fdd2c72
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - projector: {instanceID: 0}
+  - projectionMaterialGlobal: {fileID: 2100000, guid: d9f26ab11ea37384fb966f3f0b88ac7f,
+      type: 2}
+  - projectionMaterial: {fileID: 2100000, guid: f74a4ce903842074eb7f8714f9643e86,
+      type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

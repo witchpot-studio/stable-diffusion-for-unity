@@ -1,0 +1,16 @@
+{
+    "name": "Witchpot.Editor.Projection",
+    "rootNamespace": "Witchpot.Editor.Projection",
+    "references": [
+        "GUID:cb6e26850b416654eb76b53dc256930f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
