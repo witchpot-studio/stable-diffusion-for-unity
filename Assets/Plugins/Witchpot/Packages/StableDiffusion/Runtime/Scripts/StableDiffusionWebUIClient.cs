@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 using Unity.Plastic.Newtonsoft.Json;
@@ -9,6 +10,11 @@ using UnityEngine.Networking;
 
 namespace Witchpot.Runtime.StableDiffusion
 {
+    public interface IStableDiffusionClient
+    {
+        public void OnClickServerAccessButton();
+    }
+
     public class WebRequestException : Exception
     {
         public WebRequestException(string str) : base(str) { }
@@ -35,26 +41,28 @@ namespace Witchpot.Runtime.StableDiffusion
             }
         }
 
+        public static string GetLoraString(string lora, float strength = 1.0f)
+        {
+            return $"<lora:{lora}:{strength}>";
+        }
+
+        public static string GetImageString(byte[] data)
+        {
+            return Convert.ToBase64String(data);
+        }
+
+        public static string[] GetImageStringArray(byte[] data)
+        {
+            return new string[] { GetImageString(data) };
+        }
+
+        public static byte[] GetImageByteArray(string[] images)
+        {
+            return Convert.FromBase64String(images[0].Split(",")[0]);
+        }
+
         public abstract class WebRequestWrapper : IDisposable
         {
-            // field
-            private UnityWebRequest _request;
-
-            // property
-            protected UnityWebRequest WebRequest => _request;
-            public bool isDone => _request.isDone;
-            public UnityWebRequest.Result Result => _request.result;
-
-            protected WebRequestWrapper(string uri, string method, IReadOnlyList<RequestHeader> list)
-            {
-                _request = new UnityWebRequest(uri, method);
-
-                foreach (var header in list)
-                {
-                    _request.SetRequestHeader(header.Name, header.Value);
-                }
-            }
-
             protected static UploadHandlerRaw GetUploadHandler(IRequestBody body)
             {
                 var json = JsonUtility.ToJson(body);
@@ -73,19 +81,22 @@ namespace Witchpot.Runtime.StableDiffusion
                 return JsonConvert.DeserializeObject<TResponses[]>(result);
             }
 
-            protected static string GetImageString(byte[] data)
-            {
-                return Convert.ToBase64String(data);
-            }
+            // field
+            private UnityWebRequest _request;
 
-            protected static string[] GetImageStringArray(byte[] data)
-            {
-                return new string[] { GetImageString(data) };
-            }
+            // property
+            protected UnityWebRequest WebRequest => _request;
+            public bool isDone => _request.isDone;
+            public UnityWebRequest.Result Result => _request.result;
 
-            protected static byte[] GetImageByteArray(string[] images)
+            protected WebRequestWrapper(string uri, string method, IReadOnlyList<RequestHeader> list)
             {
-                return Convert.FromBase64String(images[0].Split(",")[0]);
+                _request = new UnityWebRequest(uri, method);
+
+                foreach (var header in list)
+                {
+                    _request.SetRequestHeader(header.Name, header.Value);
+                }
             }
 
             protected void CheckDone()
@@ -445,6 +456,111 @@ namespace Witchpot.Runtime.StableDiffusion
                     }
                 }
             }
+
+            public static class ControlNet
+            {
+                public class Version : WebRequestWrapper
+                {
+                    // static
+                    public static string Paths => "/controlnet/version";
+                    public static string Url => $"{ServerUrl}{Paths}";
+                    public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
+
+                    static Version()
+                    {
+                        RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
+                    }
+
+                    // interface
+                    public interface IUrl
+                    {
+                        public string Url { get; }
+                    }
+
+                    [Serializable]
+                    public class Responses : IResponses
+                    {
+                        public int version;
+                    }
+
+                    // method
+                    public Version() : base(Url, Method, RequestHeaderList) { }
+                    public Version(IUrl url) : base(url.Url, Method, RequestHeaderList) { }
+
+                    public ValueTask<Responses> SendRequestAsync()
+                    {
+                        return base.SendRequestAsync<Responses>();
+                    }
+                }
+
+                public class ModelList : WebRequestWrapper
+                {
+                    // static
+                    public static string Paths => "/controlnet/model_list";
+                    public static string Url => $"{ServerUrl}{Paths}";
+                    public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
+
+                    static ModelList()
+                    {
+                        RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
+                    }
+
+                    // interface
+                    public interface IUrl
+                    {
+                        public string Url { get; }
+                    }
+
+                    [Serializable]
+                    public class Responses : IResponses
+                    {
+                        public string[] model_list;
+                    }
+
+                    // method
+                    public ModelList() : base(Url, Method, RequestHeaderList) { }
+                    public ModelList(IUrl url) : base(url.Url, Method, RequestHeaderList) { }
+
+                    public ValueTask<Responses> SendRequestAsync()
+                    {
+                        return base.SendRequestAsync<Responses>();
+                    }
+                }
+
+                public class ModuleList : WebRequestWrapper
+                {
+                    // static
+                    public static string Paths => "/controlnet/module_list";
+                    public static string Url => $"{ServerUrl}{Paths}";
+                    public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
+
+                    static ModuleList()
+                    {
+                        RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
+                    }
+
+                    // interface
+                    public interface IUrl
+                    {
+                        public string Url { get; }
+                    }
+
+                    [Serializable]
+                    public class Responses : IResponses
+                    {
+                        public string[] module_list;
+                    }
+
+                    // method
+                    public ModuleList() : base(Url, Method, RequestHeaderList) { }
+                    public ModuleList(IUrl url) : base(url.Url, Method, RequestHeaderList) { }
+
+                    public ValueTask<Responses> SendRequestAsync()
+                    {
+                        return base.SendRequestAsync<Responses>();
+                    }
+                }
+            }
         }
 
         public static class Post
@@ -478,6 +594,16 @@ namespace Witchpot.Runtime.StableDiffusion
                         public class RequestBody : IRequestBody
                         {
                             public string sd_model_checkpoint;
+
+                            public RequestBody()
+                            {
+
+                            }
+
+                            public RequestBody(string model)
+                            {
+                                sd_model_checkpoint = model;
+                            }
                         }
 
                         [Serializable]
@@ -493,6 +619,11 @@ namespace Witchpot.Runtime.StableDiffusion
                         public RequestBody GetRequestBody()
                         {
                             return new RequestBody();
+                        }
+
+                        public RequestBody GetRequestBody(string model)
+                        {
+                            return new RequestBody(model);
                         }
 
                         public ValueTask<Responses> SendRequestAsync(RequestBody body)
@@ -542,8 +673,6 @@ namespace Witchpot.Runtime.StableDiffusion
                             public int width = 960;
                             public int height = 540;
                             public float denoising_strength = 0.0f;
-
-                            public AlwaysonScripts alwayson_scripts;
 
                             public RequestBody(IDefault def)
                             {
@@ -674,6 +803,9 @@ namespace Witchpot.Runtime.StableDiffusion
                         public static string Url => $"{ServerUrl}{Paths}";
                         public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
 
+                        private static readonly string Prompt = "Prompt";
+                        private static readonly string NegativePrompt = "Negative Prompt";
+
                         static PngInfo()
                         {
                             RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
@@ -690,6 +822,16 @@ namespace Witchpot.Runtime.StableDiffusion
                         public class RequestBody : IRequestBody
                         {
                             public string image;
+
+                            public RequestBody()
+                            {
+
+                            }
+
+                            public RequestBody(byte[] data)
+                            {
+                                SetImage(data);
+                            }
 
                             public void SetImage(byte[] data)
                             {
@@ -710,14 +852,14 @@ namespace Witchpot.Runtime.StableDiffusion
 
                                 if (lines.Length == 2)
                                 {
-                                    dic.Add("Prompt", lines[0]);
+                                    dic.Add(Prompt, lines[0]);
 
                                     ParseItems(dic, lines[1]);
                                 }
                                 else if (lines.Length == 3)
                                 {
-                                    dic.Add("Prompt", lines[0]);
-                                    dic.Add("Negative Prompt", lines[1]);
+                                    dic.Add(Prompt, lines[0]);
+                                    dic.Add(NegativePrompt, lines[1]);
 
                                     ParseItems(dic, lines[2]);
                                 }
@@ -750,16 +892,223 @@ namespace Witchpot.Runtime.StableDiffusion
                             return new RequestBody();
                         }
 
+                        public RequestBody GetRequestBody(byte[] data)
+                        {
+                            return new RequestBody(data);
+                        }
+
                         public ValueTask<Responses> SendRequestAsync(RequestBody body)
                         {
                             return base.SendRequestAsync<RequestBody, Responses>(body);
                         }
                     }
+
+                    public static class Extension
+                    {
+                        [Serializable]
+                        public class ControlNet
+                        {
+                            [Serializable]
+                            public class UnitRequest
+                            {
+                                public interface IDefault
+                                {
+                                    public float Weight { get; }
+                                    public ResizeMode ResizeMode { get; }
+                                    public bool LowVram { get; }
+                                    public int ProcessorRes { get; }
+                                    public float GuidanceStart { get; }
+                                    public float GuidanceEnd { get; }
+                                    public ControlMode ControlMode { get; }
+                                    public bool PixcelPerfect { get; }
+                                }
+
+                                [Serializable]
+                                public enum ResizeMode : int
+                                {
+                                    JustResize = 0,
+                                    ScaleToFit = 1,
+                                    Envelope = 2,
+                                }
+
+                                [Serializable]
+                                public enum ControlMode : int
+                                {
+                                    Balanced = 0,
+                                    MyPromptIsMoreImportant = 1,
+                                    ControlNetIsMoreImportant = 2,
+                                }
+
+                                public string input_image = null;
+                                public string mask = null;
+                                public string module = "none";
+                                public string model = "None";
+                                public float weight = 1.0f;
+                                public ResizeMode resize_mode = ResizeMode.ScaleToFit;
+                                public bool lowvram = false;
+                                public int processor_res = 64;
+                                public float threshold_a = 64.0f;
+                                public float threshold_b = 64.0f;
+                                public float guidance_start = 0.0f;
+                                public float guidance_end = 1.0f;
+                                public ControlMode control_mode = ControlMode.Balanced;
+                                public bool pixel_perfect = false;
+
+                                public UnitRequest(IDefault def)
+                                {
+                                    weight = def.Weight;
+                                    resize_mode = def.ResizeMode;
+                                    lowvram = def.LowVram;
+                                    processor_res = def.ProcessorRes;
+                                    guidance_start = def.GuidanceStart;
+                                    guidance_end = def.GuidanceEnd;
+                                    control_mode = def.ControlMode;
+                                    pixel_perfect = def.PixcelPerfect;
+                                }
+
+                                public UnitRequest(IDefault def, string model, byte[] data) : this(def)
+                                {
+                                    SetModel(model);
+                                    SetImage(data);
+                                }
+
+                                public void SetModel(string model)
+                                {
+                                    this.model = model;
+                                }
+
+                                public void SetImage(byte[] data)
+                                {
+                                    input_image = GetImageString(data);
+                                }
+                            }
+
+                            public UnitRequest[] args;
+
+                            public ControlNet(UnitRequest[] args)
+                            {
+                                this.args = args;
+                            }
+
+                            public ControlNet(UnitRequest arg) : this(new UnitRequest[] { arg })
+                            {
+
+                            }
+
+                            public ControlNet(UnitRequest.IDefault def, string model, byte[] image) : this(new UnitRequest(def, model, image))
+                            {
+
+                            }
+                        }
+
+                        [Serializable]
+                        public class AS_ControlNet
+                        {
+                            public ControlNet controlnet;
+
+                            public AS_ControlNet(ControlNet cn)
+                            {
+                                controlnet = cn;
+                            }
+                        }
+
+                        public class Txt2ImgWithControlNet : Txt2Img
+                        {
+                            [Serializable]
+                            public new class RequestBody : Txt2Img.RequestBody
+                            {
+                                public AS_ControlNet alwayson_scripts;
+
+                                public RequestBody(IDefault def) : base(def)
+                                {
+                            
+                                }
+
+                                public RequestBody(IDefault def, AS_ControlNet alwayson) : base(def)
+                                {
+                                    alwayson_scripts = alwayson;
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest[] args)
+                                {
+                                    var controlnet = new ControlNet(args);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest arg)
+                                {
+                                    var controlnet = new ControlNet(arg);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest.IDefault args, string model, byte[] image)
+                                {
+                                    var controlnet = new ControlNet(args, model, image);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+                            }
+
+                            public Txt2ImgWithControlNet() : base() { }
+                            public Txt2ImgWithControlNet(IUrl url) : base(url) { }
+
+                            public new RequestBody GetRequestBody(RequestBody.IDefault def)
+                            {
+                                return new RequestBody(def);
+                            }
+                        }
+
+                        public class Img2ImgWithControlNet : Img2Img
+                        {
+                            [Serializable]
+                            public new class RequestBody : Img2Img.RequestBody
+                            {
+                                public AS_ControlNet alwayson_scripts;
+
+                                public RequestBody(IDefault def) : base(def)
+                                {
+
+                                }
+
+                                public RequestBody(IDefault def, AS_ControlNet alwayson) : base(def)
+                                {
+                                    alwayson_scripts = alwayson;
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest[] args)
+                                {
+                                    var controlnet = new ControlNet(args);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest arg)
+                                {
+                                    var controlnet = new ControlNet(arg);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+
+                                public void SetAlwaysonScripts(ControlNet.UnitRequest.IDefault args, string model, byte[] image)
+                                {
+                                    var controlnet = new ControlNet(args, model, image);
+                                    alwayson_scripts = new AS_ControlNet(controlnet);
+                                }
+                            }
+
+                            public Img2ImgWithControlNet() : base() { }
+                            public Img2ImgWithControlNet(IUrl url) : base(url) { }
+
+                            public new RequestBody GetRequestBody(RequestBody.IDefault def)
+                            {
+                                return new RequestBody(def);
+                            }
+                        }
+                    }
                 }
             }
 
+            [Obsolete]
             public static class ControlNet
             {
+                [Obsolete]
                 public class Txt2Img : WebRequestWrapper
                 {
                     // static
@@ -847,58 +1196,6 @@ namespace Witchpot.Runtime.StableDiffusion
                         return base.SendRequestAsync<RequestBody, Responses>(body);
                     }
                 }
-            }
-        }
-
-        [Serializable]
-        public class AlwaysonScripts
-        {
-            public ControlNet controlnet;
-        }
-
-        [Serializable]
-        public class ControlNet
-        {
-            public ControlNetUnitRequest[] args;
-        }
-
-        [Serializable]
-        public class ControlNetUnitRequest
-        {
-            [Serializable]
-            public enum ResizeMode : int
-            {
-                JustResize = 0,
-                ScaleToFit = 1,
-                Envelope = 2,
-            }
-
-            [Serializable]
-            public enum ControlMode : int
-            {
-                Balanced = 0,
-                MyPromptIsMoreImportant = 1,
-                ControlNetIsMoreImportant = 2,
-            }
-
-            public string input_image = null;
-            public string mask = null;
-            public string module = "none";
-            public string model = "None";
-            public float weight = 1.0f;
-            public ResizeMode resize_mode = ResizeMode.ScaleToFit;
-            public bool lowvram = false;
-            public int processor_res = 64;
-            public float threshold_a = 64.0f;
-            public float threshold_b = 64.0f;
-            public float guidance_start = 0.0f;
-            public float guidance_end = 1.0f;
-            public ControlMode control_mode = ControlMode.Balanced;
-            public bool pixel_perfect = false;
-
-            public void SetImage(byte[] data)
-            {
-                input_image = Convert.ToBase64String(data);
             }
         }
     }

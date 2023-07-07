@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +20,8 @@ namespace Witchpot.Runtime.Projection
 
             [SerializeField]
             private Material[] materials;
+
+            public int MaterialCount => materials.Length;
 
             public MaterialBuffer(Renderer renderer)
             {
@@ -52,8 +54,21 @@ namespace Witchpot.Runtime.Projection
         [SerializeField]
         private List<MaterialBuffer> buffers = new List<MaterialBuffer>();
 
-        private Material[] projectionMaterialGlobalArray;
-        private Material[] projectionMaterialArray;
+        private Dictionary<int, Material[]> projectionMaterialGlobalDic = new Dictionary<int, Material[]>();
+        private Dictionary<int, Material[]> projectionMaterialDic = new Dictionary<int, Material[]>();
+
+        private void SetMaterialArrayToDic(Dictionary<int, Material[]> dic, int count, Material material)
+        {
+            if (projectionMaterialGlobalDic.ContainsKey(count)) { return; }
+
+            var materials = new Material[count];
+            for (int i = 0; i < count; i++)
+            {
+                materials[i] = material;
+            }
+
+            projectionMaterialGlobalDic.Add(count, materials);
+        }
 
         private void OnValidate()
         {
@@ -65,19 +80,6 @@ namespace Witchpot.Runtime.Projection
 
         public void ApplayMaterial()
         {
-            if (projectionMaterialGlobalArray == null || projectionMaterialGlobalArray.Length != 1 )
-            {
-                projectionMaterialGlobalArray = new Material[1];
-            }
-
-            if (projectionMaterialArray == null || projectionMaterialArray.Length != 1)
-            {
-                projectionMaterialArray = new Material[1];
-            }
-
-            projectionMaterialGlobalArray[0] = projectionMaterialGlobal;
-            projectionMaterialArray[0] = projectionMaterial;
-
             if (buffers.Count > 0)
             {
                 Debug.LogWarning("Materials stored in buffer. Please do restore or clear first.");
@@ -90,19 +92,27 @@ namespace Witchpot.Runtime.Projection
             {
                 if (renderer == null) { continue; }
 
-                buffers.Add(new MaterialBuffer(renderer));
+                var buffer = new MaterialBuffer(renderer);
+
+                buffers.Add(buffer);
+
+                Material[] materials;
 
                 switch (projector.ProjectionType)
                 {
                     case ImageProjector.EProjectionType.Global:
                     default:
-                        renderer.sharedMaterials = projectionMaterialGlobalArray;
+                        SetMaterialArrayToDic(projectionMaterialGlobalDic, buffer.MaterialCount, projectionMaterialGlobal);
+                        projectionMaterialGlobalDic.TryGetValue(buffer.MaterialCount, out materials);
                         break;
 
                     case ImageProjector.EProjectionType.TargetRenderers:
-                        renderer.sharedMaterials = projectionMaterialArray;
+                        SetMaterialArrayToDic(projectionMaterialDic, buffer.MaterialCount, projectionMaterial);
+                        projectionMaterialDic.TryGetValue(buffer.MaterialCount, out materials);
                         break;
                 }
+
+                renderer.sharedMaterials = materials;
             }
         }
 

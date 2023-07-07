@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 04b4049604ebe3446a7fa78a4a6cfe6e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _stableDiffusionWebUISettings: {fileID: 11400000, guid: 44c0a24ec1fd6d548a0862fa02c7b539,
+      type: 2}
+  - _pipelineAsset: {fileID: 11400000, guid: 722591999ba1e6c4d8b0d4444cc1347b, type: 2}
+  - _mainRendererFeature: {fileID: -880672467421428833, guid: a98b8f1ad9b24f64badc78abda4c10f2,
+      type: 2}
+  - _prefabVolumeChanger: {fileID: 4314036974411532305, guid: 9d7f450421b4508478c5c13619910500,
+      type: 3}
+  - _renderTexture: {instanceID: 0}
+  - _camera: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

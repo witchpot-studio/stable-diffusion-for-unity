@@ -11,65 +11,13 @@ using UnityEditor;
 
 namespace Witchpot.Runtime.StableDiffusion
 {
-    public class Text2Img : MonoBehaviour
+    public class Text2Img : StableDiffusionClientBase
     {
 #if UNITY_EDITOR
-        [SerializeField] private StableDiffusionWebUISettings _stableDiffusionWebUISettings;
-        [SerializeField, TextArea] private string _prompt;
-        [SerializeField, TextArea] private string _negativePrompt;
-        [SerializeField] private int _width = 960;
-        [SerializeField] private int _height = 540;
-        [SerializeField] private int _steps = 50;
-        [SerializeField] private float _cfgScale = 7;
-        //[SerializeField][Range(0.0f, 1.0f)] public float _denoisingStrength = 0.0f;
-        [SerializeField] private long _seed = -1;
-        [SerializeField, Range(1, 100)] private int _batchCount = 1;
-        //[SerializeField] private ImagePorter.ImageType _exportType = ImagePorter.ImageType.PNG;
-        [HideInInspector][SerializeField] private int _selectedSampler;
-        [HideInInspector][SerializeField] private int _selectedModel;
-        [HideInInspector][SerializeField] private int _selectedLoraModel;
+
         private bool _generating = false;
-
-        public string Prompt
-        {
-            get { return _prompt; }
-            set { _prompt = value; }
-        }
-
-        public string[] SamplersList
-        {
-            get { return _stableDiffusionWebUISettings.Samplers; }
-        }
-
-        public string[] ModelsList
-        {
-            get { return _stableDiffusionWebUISettings.ModelNames; }
-        }
-
-        public string[] LoraModelsList
-        {
-            get { return _stableDiffusionWebUISettings.ModelNamesForLora; }
-        }
-
-        public int SelectedSampler
-        {
-            get { return _selectedSampler; }
-            set { _selectedSampler = value; }
-        }
-
-        public int SelectedModel
-        {
-            get { return _selectedModel; }
-            set { _selectedModel = value; }
-        }
-
-        public int SelectedLoraModel
-        {
-            get { return _selectedLoraModel; }
-            set { _selectedLoraModel = value; }
-        }
-
-        public void OnClickGenerateButton()
+        
+        public override void OnClickServerAccessButton()
         {
             if (_generating)
             {
@@ -77,28 +25,32 @@ namespace Witchpot.Runtime.StableDiffusion
                 return;
             }
 
-            if (string.IsNullOrEmpty(_prompt))
+            if (string.IsNullOrEmpty(Prompt))
             {
                 Debug.LogWarning("Prompt is empty");
                 return;
             }
 
-            if (_batchCount == 1)
+            if (EditorApplication.isCompiling)
+            {
+                Debug.LogWarning("Compile is running");
+                return;
+            }
+
+            Debug.Log("Image generating started.");
+
+            if (BatchCount == 1)
             {
                 GenerateSingle().Forget();
             }
-            else if (_batchCount > 1)
+            else if (BatchCount > 1)
             {
-                GenerateLoop(_batchCount).Forget();
+                GenerateLoop(BatchCount).Forget();
             }
         }
 
         private async ValueTask GenerateSingle()
         {
-            if (EditorApplication.isCompiling) return;
-
-            Debug.Log("Image generating started.");
-
             try
             {
                 _generating = true;
@@ -113,10 +65,6 @@ namespace Witchpot.Runtime.StableDiffusion
 
         private async ValueTask GenerateLoop(int count)
         {
-            if (EditorApplication.isCompiling) return;
-
-            Debug.Log("Image generating started.");
-
             try
             {
                 _generating = true;
@@ -134,58 +82,37 @@ namespace Witchpot.Runtime.StableDiffusion
 
         private async ValueTask GenerateImage(bool load = false)
         {
-            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Options(_stableDiffusionWebUISettings))
-            {
-                var body = client.GetRequestBody();
+            await SetStableDiffusionModel();
 
-                body.sd_model_checkpoint = ModelsList[_selectedModel];
+            byte[] generated;
+
+            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Txt2Img(StableDiffusionWebUISettings))
+            {
+                var body = client.GetRequestBody(this);
+
+                body.prompt = Prompt;
+                body.negative_prompt = NegativePrompt;
 
                 var responses = await client.SendRequestAsync(body);
+
+                generated = responses.GetImage();
             }
 
-            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.Txt2Img(_stableDiffusionWebUISettings))
+            await LogSeedValue(generated);
+
+            if (ImagePorter.SavePngImage(generated))
             {
-                var body = client.GetRequestBody(_stableDiffusionWebUISettings);
+                Debug.Log("Image generating completed.");
+            }
+            else
+            {
+                Debug.LogWarning("Faled to save generated image.");
+            }
 
-                body.prompt = _prompt;
-                body.steps = _steps;
-                body.negative_prompt = _negativePrompt;
-                body.seed = _seed;
-                body.cfg_scale = _cfgScale;
-                //body.denoising_strength = _denoisingStrength;
-                body.width = _width;
-                body.height = _height;
-
-                var responses = await client.SendRequestAsync(body);
-
-                using (var clientInfo = new StableDiffusionWebUIClient.Post.SdApi.V1.PngInfo(_stableDiffusionWebUISettings))
-                {
-                    var bodyInfo = clientInfo.GetRequestBody();
-                    bodyInfo.SetImage(responses.GetImage());
-
-                    var responsesInfo = await clientInfo.SendRequestAsync(bodyInfo);
-
-                    var dic = responsesInfo.Parse();
-
-                    Debug.Log($"Seed:{dic.GetValueOrDefault("Seed")}");
-                }
-
-                var texture = ImagePorter.GenerateTexture(responses.GetImage());
-
-                if (ImagePorter.SavePngImage(responses.GetImage()))
-                //if (ImagePorter.SaveImage(texture, _exportType))
-                {
-                    Debug.Log("Image generating completed.");
-                }
-                else
-                {
-                    Debug.LogWarning("Faled to save generated image.");
-                }
-
-                if (load)
-                {
-                    ImagePorter.LoadIntoImage(texture, this);
-                }
+            if (load)
+            {
+                var texture = ImagePorter.GenerateTexture(generated);
+                ImagePorter.LoadIntoImage(texture, this);
             }
         }
 #endif

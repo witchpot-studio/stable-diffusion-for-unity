@@ -74,5 +74,45 @@ Shader "Witchpot/ProjectionMappingUnlit"
 			}
 			ENDHLSL
 		}
+
+		Pass
+		{
+			Name "DepthNormals"
+			Tags { "LightMode" = "DepthNormals" }
+
+			HLSLPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+
+			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+			struct Attributes
+			{
+				float4 positionOS : POSITION;
+				float3 normalOS : NORMAL;
+			};
+
+			struct Varyings
+			{
+				float4 positionCS : SV_POSITION;
+				float3 normalWS : TEXCOORD0;
+			};
+
+			Varyings vert(Attributes IN)
+			{
+				Varyings OUT = (Varyings)0;
+				OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
+				OUT.normalWS = normalize(mul(IN.normalOS.xyz, (float3x3)unity_WorldToObject));
+
+				return OUT;
+			}
+
+			half4 frag(Varyings IN) : SV_TARGET
+			{
+				return half4(IN.normalWS, 1);
+			}
+
+			ENDHLSL
+		}
 	}
 }
