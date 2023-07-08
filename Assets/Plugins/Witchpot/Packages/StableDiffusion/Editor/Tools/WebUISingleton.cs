@@ -259,17 +259,48 @@ namespace Witchpot.Editor.StableDiffusion
             {
                 try
                 {
-                    var _get = new StableDiffusionWebUIClient.Get.AppId();
-                    var result = await _get.SendRequestAsync();
+                    string id;
 
-                    if (Regex.IsMatch(result.app_id, "^[0-9]+$"))
+                    using (var client = new StableDiffusionWebUIClient.Get.AppId())
                     {
-                        SetServerArgs(ServerStarted, result.app_id, true);
+                        var result = await client.SendRequestAsync();
+                        id = result.app_id;
+                    }
+
+                    if (Regex.IsMatch(id, "^[0-9]+$"))
+                    {
+                        SetServerArgs(ServerStarted, id, true);
                         UnityEngine.Debug.Log($"Server AppId : {ServerAppId}");
                     }
                     else
                     {
                         SetServerArgs(ServerStarted, string.Empty, true);
+                    }
+
+                    string versionSD;
+                    using (var client = new StableDiffusionWebUIClient.Get.Config())
+                    {
+                        var result = await client.SendRequestAsync();
+                        versionSD = result.GetVersion();
+                    }
+                    UnityEngine.Debug.Log($"StableDiffusion version : {versionSD}");
+
+                    if (!string.Equals(versionSD, EditorPaths.WEBUI_EXPECTED_VERSION))
+                    {
+                        UnityEngine.Debug.LogWarning($"StableDiffusion version is different. Reinstallation will be needed.\nCurrent : {versionSD}\nExpected : {EditorPaths.WEBUI_EXPECTED_VERSION}");
+                    }
+
+                    int versionCN;
+                    using (var client = new StableDiffusionWebUIClient.Get.ControlNet.Version())
+                    {
+                        var result = await client.SendRequestAsync();
+                        versionCN = result.version;
+                    }
+                    UnityEngine.Debug.Log($"ControlNet version : {versionCN}");
+
+                    if (!int.Equals(versionCN, EditorPaths.WEBUI_CONTROLNET_EXPECTED_VERSION))
+                    {
+                        UnityEngine.Debug.LogWarning($"ControlNet version is different. Reinstallation will be needed.\nCurrent : {versionCN}\nExpected : {EditorPaths.WEBUI_CONTROLNET_EXPECTED_VERSION}");
                     }
 
                     UnityEngine.Debug.Log($"Check done.");

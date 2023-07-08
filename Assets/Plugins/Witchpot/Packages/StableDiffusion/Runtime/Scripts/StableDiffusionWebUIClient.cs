@@ -228,6 +228,82 @@ namespace Witchpot.Runtime.StableDiffusion
                 }
             }
 
+            public class Info : WebRequestWrapper
+            {
+                // static
+                public static string Paths => "/info";
+                public static string Url => $"{ServerUrl}{Paths}";
+                public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
+
+                static Info()
+                {
+                    RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
+                }
+
+                // interface
+                public interface IUrl
+                {
+                    public string Url { get; }
+                }
+
+                // internal class
+                [Serializable]
+                public class Responses : IResponses
+                {
+                    public string[] named_endpoints;
+                    public string[] unnamed_endpoints;
+                }
+
+                // method
+                public Info() : base(Url, Method, RequestHeaderList) { }
+                public Info(IUrl url) : base(url.Url, Method, RequestHeaderList) { }
+
+                public ValueTask<Responses> SendRequestAsync()
+                {
+                    return base.SendRequestAsync<Responses>();
+                }
+            }
+
+            public class Config : WebRequestWrapper
+            {
+                // static
+                public static string Paths => "/config";
+                public static string Url => $"{ServerUrl}{Paths}";
+                public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
+
+                static Config()
+                {
+                    RequestHeaderList = new List<RequestHeader>() { new RequestHeader(ContentType, ApplicationJson), };
+                }
+
+                // interface
+                public interface IUrl
+                {
+                    public string Url { get; }
+                }
+
+                // internal class
+                [Serializable]
+                public class Responses : IResponses
+                {
+                    public string version;
+
+                    public string GetVersion()
+                    {
+                        return version.Trim('\n');
+                    }
+                }
+
+                // method
+                public Config() : base(Url, Method, RequestHeaderList) { }
+                public Config(IUrl url) : base(url.Url, Method, RequestHeaderList) { }
+
+                public ValueTask<Responses> SendRequestAsync()
+                {
+                    return base.SendRequestAsync<Responses>();
+                }
+            }
+
             public static class SdApi
             {
                 public static class V1

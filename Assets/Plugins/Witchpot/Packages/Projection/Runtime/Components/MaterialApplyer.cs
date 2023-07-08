@@ -59,7 +59,7 @@ namespace Witchpot.Runtime.Projection
 
         private void SetMaterialArrayToDic(Dictionary<int, Material[]> dic, int count, Material material)
         {
-            if (projectionMaterialGlobalDic.ContainsKey(count)) { return; }
+            if (dic.ContainsKey(count)) { return; }
 
             var materials = new Material[count];
             for (int i = 0; i < count; i++)
@@ -67,7 +67,7 @@ namespace Witchpot.Runtime.Projection
                 materials[i] = material;
             }
 
-            projectionMaterialGlobalDic.Add(count, materials);
+            dic.Add(count, materials);
         }
 
         private void OnValidate()
