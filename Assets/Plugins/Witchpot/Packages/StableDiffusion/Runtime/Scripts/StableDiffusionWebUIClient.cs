@@ -22,26 +22,16 @@ namespace Witchpot.Runtime.StableDiffusion
 
     public static class StableDiffusionWebUIClient
     {
-        public interface IParameters { }
-        public interface IRequestBody { }
-        public interface IResponses { }
+        // Static
+        public static readonly string ServerUrl = "http://127.0.0.1:7860";
 
-        public struct RequestHeader
-        {
-            private string _name;
-            public string Name => _name;
+        private static readonly string ContentType = "Content-Type";
+        private static readonly string ApplicationJson = "application/json";
 
-            private string _value;
-            public string Value => _value;
+        private static readonly string LabelPrompt = "Prompt";
+        private static readonly string LabelNegativePrompt = "Negative Prompt";
 
-            public RequestHeader(string name, string value)
-            {
-                _name = name;
-                _value = value;
-            }
-        }
-
-        public static string GetLoraString(string lora, float strength = 1.0f)
+        public static string GetLoraString(string lora, double strength = 1.0f)
         {
             return $"<lora:{lora}:{strength}>";
         }
@@ -59,6 +49,26 @@ namespace Witchpot.Runtime.StableDiffusion
         public static byte[] GetImageByteArray(string[] images)
         {
             return Convert.FromBase64String(images[0].Split(",")[0]);
+        }
+
+        //
+        public interface IParameters { }
+        public interface IRequestBody { }
+        public interface IResponses { }
+
+        public struct RequestHeader
+        {
+            private string _name;
+            public string Name => _name;
+
+            private string _value;
+            public string Value => _value;
+
+            public RequestHeader(string name, string value)
+            {
+                _name = name;
+                _value = value;
+            }
         }
 
         public abstract class WebRequestWrapper : IDisposable
@@ -183,11 +193,6 @@ namespace Witchpot.Runtime.StableDiffusion
                 ((IDisposable)WebRequest).Dispose();
             }
         }
-
-        public static string ServerUrl => "http://127.0.0.1:7860";
-
-        private static string ContentType => "Content-Type";
-        private static string ApplicationJson => "application/json";
 
         public static class Get
         {
@@ -514,11 +519,11 @@ namespace Witchpot.Runtime.StableDiffusion
                         [Serializable]
                         public class Responses : IResponses
                         {
-                            public float progress = 0;
-                            public float eta_relative = 0;
+                            public double progress;
+                            public double eta_relative;
                             //public XXX state = { };
-                            public string current_image = "string";
-                            public string textinfo = "string";
+                            public string current_image;
+                            public string textinfo;
                         }
 
                         // method
@@ -736,7 +741,7 @@ namespace Witchpot.Runtime.StableDiffusion
                                 public int Width { get; }
                                 public int Height { get; }
                                 public int Steps { get; }
-                                public float CfgScale { get; }
+                                public double CfgScale { get; }
                                 public long Seed { get; }
                             }
 
@@ -745,10 +750,10 @@ namespace Witchpot.Runtime.StableDiffusion
                             public string negative_prompt = "";
                             public long seed = -1;
                             public int steps = 20;
-                            public float cfg_scale = 7;
+                            public double cfg_scale = 7;
                             public int width = 960;
                             public int height = 540;
-                            public float denoising_strength = 0.0f;
+                            public double denoising_strength = 0.0f;
 
                             public RequestBody(IDefault def)
                             {
@@ -765,10 +770,49 @@ namespace Witchpot.Runtime.StableDiffusion
                         public class Responses : IResponses
                         {
                             public string[] images;
+                            public RequestBody parameters;
+                            public string info;
+
+                            [Serializable]
+                            public class Info
+                            {
+                                public string prompt;
+                                public string[] all_prompts;
+                                public string negative_prompt;
+                                public string[] all_negative_prompts;
+                                public long seed;
+                                public long[] all_seeds;
+                                public long subseed;
+                                public long[] all_subseeds;
+                                public double subseed_strength;
+                                public int width;
+                                public int height;
+                                public string sampler_name;
+                                public int steps;
+                                public int batch_size;
+                                public bool restore_faces;
+                                public string face_restoration_model;
+                                public string sd_model_hash;
+                                public long seed_resize_from_w;
+                                public long seed_resize_from_h;
+                                public double denoising_strength;
+                                public string extra_generation_params;
+                                public int index_of_first_image;
+                                public string[] infotexts;
+                                public string[] styles;
+                                public string job_timestamp;
+                                public int clip_skip;
+                                public bool is_using_inpainting_conditioning;
+                            }
 
                             public byte[] GetImage()
                             {
                                 return GetImageByteArray(images);
+                            }
+
+                            public Info GetInfo()
+                            {
+                                return JsonUtility.FromJson<Info>(info);
                             }
                         }
 
@@ -815,7 +859,7 @@ namespace Witchpot.Runtime.StableDiffusion
                                 public int Width { get; }
                                 public int Height { get; }
                                 public int Steps { get; }
-                                public float CfgScale { get; }
+                                public double CfgScale { get; }
                                 public long Seed { get; }
                             }
 
@@ -825,10 +869,10 @@ namespace Witchpot.Runtime.StableDiffusion
                             public string negative_prompt = "";
                             public long seed = -1;
                             public int steps = 20;
-                            public float cfg_scale = 7;
+                            public double cfg_scale = 7;
                             public int width = 960;
                             public int height = 540;
-                            public float denoising_strength = 0.75f;
+                            public double denoising_strength = 0.75f;
 
                             public RequestBody(IDefault def)
                             {
@@ -850,10 +894,49 @@ namespace Witchpot.Runtime.StableDiffusion
                         public class Responses : IResponses
                         {
                             public string[] images;
+                            public RequestBody parameters;
+                            public string info;
+
+                            [Serializable]
+                            public class Info
+                            {
+                                public string prompt;
+                                public string[] all_prompts;
+                                public string negative_prompt;
+                                public string[] all_negative_prompts;
+                                public long seed;
+                                public long[] all_seeds;
+                                public long subseed;
+                                public long[] all_subseeds;
+                                public double subseed_strength;
+                                public int width;
+                                public int height;
+                                public string sampler_name;
+                                public int steps;
+                                public int batch_size;
+                                public bool restore_faces;
+                                public string face_restoration_model;
+                                public string sd_model_hash;
+                                public long seed_resize_from_w;
+                                public long seed_resize_from_h;
+                                public double denoising_strength;
+                                public string extra_generation_params;
+                                public int index_of_first_image;
+                                public string[] infotexts;
+                                public string[] styles;
+                                public string job_timestamp;
+                                public int clip_skip;
+                                public bool is_using_inpainting_conditioning;
+                            }
 
                             public byte[] GetImage()
                             {
                                 return GetImageByteArray(images);
+                            }
+
+                            public Info GetInfo()
+                            {
+                                return JsonUtility.FromJson<Info>(info);
                             }
                         }
 
@@ -878,9 +961,6 @@ namespace Witchpot.Runtime.StableDiffusion
                         public static string Paths => "/sdapi/v1/png-info";
                         public static string Url => $"{ServerUrl}{Paths}";
                         public static IReadOnlyList<RequestHeader> RequestHeaderList { get; }
-
-                        private static readonly string Prompt = "Prompt";
-                        private static readonly string NegativePrompt = "Negative Prompt";
 
                         static PngInfo()
                         {
@@ -920,7 +1000,7 @@ namespace Witchpot.Runtime.StableDiffusion
                         {
                             public string info;
 
-                            public IReadOnlyDictionary<string, string> Parse()
+                            public IReadOnlyDictionary<string, string> ParseInfo()
                             {
                                 var dic = new Dictionary<string, string>();
 
@@ -928,22 +1008,22 @@ namespace Witchpot.Runtime.StableDiffusion
 
                                 if (lines.Length == 2)
                                 {
-                                    dic.Add(Prompt, lines[0]);
+                                    dic.Add(LabelPrompt, lines[0]);
 
-                                    ParseItems(dic, lines[1]);
+                                    ParseInfoItems(dic, lines[1]);
                                 }
                                 else if (lines.Length == 3)
                                 {
-                                    dic.Add(Prompt, lines[0]);
-                                    dic.Add(NegativePrompt, lines[1]);
+                                    dic.Add(LabelPrompt, lines[0]);
+                                    dic.Add(LabelNegativePrompt, lines[1]);
 
-                                    ParseItems(dic, lines[2]);
+                                    ParseInfoItems(dic, lines[2]);
                                 }
 
                                 return dic;
                             }
 
-                            private void ParseItems(Dictionary<string, string> dic, string line)
+                            private static void ParseInfoItems(Dictionary<string, string> dic, string line)
                             {
                                 var items = line.Split(", ");
 
@@ -989,12 +1069,12 @@ namespace Witchpot.Runtime.StableDiffusion
                             {
                                 public interface IDefault
                                 {
-                                    public float Weight { get; }
+                                    public double Weight { get; }
                                     public ResizeMode ResizeMode { get; }
                                     public bool LowVram { get; }
                                     public int ProcessorRes { get; }
-                                    public float GuidanceStart { get; }
-                                    public float GuidanceEnd { get; }
+                                    public double GuidanceStart { get; }
+                                    public double GuidanceEnd { get; }
                                     public ControlMode ControlMode { get; }
                                     public bool PixcelPerfect { get; }
                                 }
@@ -1019,14 +1099,14 @@ namespace Witchpot.Runtime.StableDiffusion
                                 public string mask = null;
                                 public string module = "none";
                                 public string model = "None";
-                                public float weight = 1.0f;
+                                public double weight = 1.0f;
                                 public ResizeMode resize_mode = ResizeMode.ScaleToFit;
                                 public bool lowvram = false;
                                 public int processor_res = 64;
-                                public float threshold_a = 64.0f;
-                                public float threshold_b = 64.0f;
-                                public float guidance_start = 0.0f;
-                                public float guidance_end = 1.0f;
+                                public double threshold_a = 64.0f;
+                                public double threshold_b = 64.0f;
+                                public double guidance_start = 0.0f;
+                                public double guidance_end = 1.0f;
                                 public ControlMode control_mode = ControlMode.Balanced;
                                 public bool pixel_perfect = false;
 
@@ -1213,7 +1293,7 @@ namespace Witchpot.Runtime.StableDiffusion
                             public int Width { get; }
                             public int Height { get; }
                             public int Steps { get; }
-                            public float CfgScale { get; }
+                            public double CfgScale { get; }
                             public long Seed { get; }
                         }
 
@@ -1221,15 +1301,15 @@ namespace Witchpot.Runtime.StableDiffusion
                         public string controlnet_module = "none";
                         public string controlnet_model = "control_v11f1p_sd15_depth_fp16 [4b72d323]";
                         public string sampler_index = "Euler a";
-                        public float controlnet_weight = 1.0f;
+                        public double controlnet_weight = 1.0f;
                         public string prompt = "";
                         public string negative_prompt = "";
                         public long seed = -1;
                         public int steps = 20;
-                        public float cfg_scale = 7;
+                        public double cfg_scale = 7;
                         public int width = 960;
                         public int height = 540;
-                        public float denoising_strength = 0.0f;
+                        public double denoising_strength = 0.0f;
 
                         public RequestBody(IDefault def)
                         {

@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -41,6 +41,37 @@ namespace Witchpot.Runtime.Projection
             nearClipPlane = camera.nearClipPlane;
             farClipPlane = camera.farClipPlane;
             fieldOfView = camera.fieldOfView;
+        }
+
+        public void DrawGizmo(Transform transform)
+        {
+            var buffer = Gizmos.color;
+
+            try
+            {
+                Gizmos.color = Color.gray;
+
+                var gizmosMatrix = Gizmos.matrix;
+
+                Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+
+                if (Orthographic)
+                {
+                    var boxLength = FarClipPlane - NearClipPlane;
+                    var boxCenter = Vector3.forward * (boxLength / 2.0f + NearClipPlane);
+                    Gizmos.DrawWireCube(boxCenter, new Vector3(OrthographicSize * Aspect * 2.0f, OrthographicSize * 2, boxLength));
+                }
+                else
+                {
+                    Gizmos.DrawFrustum(Vector3.zero, FieldOfView, FarClipPlane, NearClipPlane, Aspect);
+                }
+
+                Gizmos.matrix = gizmosMatrix;
+            }
+            finally
+            {
+                Gizmos.color = buffer;
+            }
         }
     }
 

@@ -43,7 +43,7 @@ namespace Witchpot
         [SerializeField] private int _defaultWidth = 512;
         [SerializeField] private int _defaultHeight = 512;
         [SerializeField] private int _defaultSteps = 40;
-        [SerializeField] private float _defaultCfgScale = 7;
+        [SerializeField] private double _defaultCfgScale = 7;
         [SerializeField] private long _defaultSeed = -1;
         [SerializeField] private string[] _samplers = new string[]
         {
@@ -125,7 +125,7 @@ namespace Witchpot
         public int Width => _defaultWidth;
         public int Height => _defaultHeight;
         public int Steps => _defaultSteps;
-        public float CfgScale => _defaultCfgScale;
+        public double CfgScale => _defaultCfgScale;
         public long Seed => _defaultSeed;
 
         public string[] Samplers => _samplers;

@@ -16,7 +16,7 @@ namespace Witchpot.Runtime.Projection
     public class TextureBaker : MonoBehaviour
     {
         [SerializeField]
-        private ImageProjector projector;
+        private CameraImageProjector projector;
 
         [SerializeField]
         private Vector2Int textureSize = new Vector2Int(1024, 1024);
@@ -52,7 +52,7 @@ namespace Witchpot.Runtime.Projection
         {
             if (projector == null)
             {
-                projector = GetComponent<ImageProjector>();
+                projector = GetComponent<CameraImageProjector>();
             }
 
             if (string.IsNullOrEmpty(targetDirectory))
@@ -67,11 +67,11 @@ namespace Witchpot.Runtime.Projection
         {
             switch (projector.ProjectionType)
             {
-                case ImageProjector.EProjectionType.Global:
+                case CameraImageProjector.EProjectionType.Global:
                 default:
                     return bakeMaterialGlobal;
 
-                case ImageProjector.EProjectionType.TargetRenderers:
+                case CameraImageProjector.EProjectionType.TargetRenderers:
                     return bakeMaterial;
             }
         }
@@ -215,12 +215,12 @@ namespace Witchpot.Runtime.Projection
 
             switch (projector.ProjectionType)
             {
-                case ImageProjector.EProjectionType.Global:
+                case CameraImageProjector.EProjectionType.Global:
                 default:
                     projector.ApplyProjectionInfo();
                     break;
 
-                case ImageProjector.EProjectionType.TargetRenderers:
+                case CameraImageProjector.EProjectionType.TargetRenderers:
                     projector.ApplyProjectionInfoToMaterial(material);
                     break;
             }

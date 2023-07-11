@@ -39,14 +39,21 @@ namespace Witchpot.Runtime.StableDiffusion
 
             Debug.Log("Image generating started.");
 
+            GenerateAsync().Forget();
+        }
+
+        public override async ValueTask GenerateAsync()
+        {
             if (BatchCount == 1)
             {
-                GenerateSingle().Forget();
+                await GenerateSingle();
             }
             else if (BatchCount > 1)
             {
-                GenerateLoop(BatchCount).Forget();
+                await GenerateLoop(BatchCount);
             }
+
+            AssetDatabase.Refresh();
         }
 
         private async ValueTask GenerateSingle()
@@ -96,9 +103,10 @@ namespace Witchpot.Runtime.StableDiffusion
                 var responses = await client.SendRequestAsync(body);
 
                 generated = responses.GetImage();
-            }
 
-            await LogSeedValue(generated);
+                var info = responses.GetInfo();
+                Debug.Log($"Seed : {info.seed}");
+            }
 
             if (ImagePorter.SavePngImage(generated))
             {

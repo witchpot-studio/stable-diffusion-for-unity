@@ -43,7 +43,7 @@ namespace Witchpot.Runtime.Projection
         }
 
         [SerializeField]
-        private ImageProjector projector;
+        private CameraImageProjector projector;
 
         [SerializeField]
         private Material projectionMaterialGlobal;
@@ -74,7 +74,7 @@ namespace Witchpot.Runtime.Projection
         {
             if (projector == null)
             {
-                projector = GetComponent<ImageProjector>();
+                projector = GetComponent<CameraImageProjector>();
             }
         }
 
@@ -100,13 +100,13 @@ namespace Witchpot.Runtime.Projection
 
                 switch (projector.ProjectionType)
                 {
-                    case ImageProjector.EProjectionType.Global:
+                    case CameraImageProjector.EProjectionType.Global:
                     default:
                         SetMaterialArrayToDic(projectionMaterialGlobalDic, buffer.MaterialCount, projectionMaterialGlobal);
                         projectionMaterialGlobalDic.TryGetValue(buffer.MaterialCount, out materials);
                         break;
 
-                    case ImageProjector.EProjectionType.TargetRenderers:
+                    case CameraImageProjector.EProjectionType.TargetRenderers:
                         SetMaterialArrayToDic(projectionMaterialDic, buffer.MaterialCount, projectionMaterial);
                         projectionMaterialDic.TryGetValue(buffer.MaterialCount, out materials);
                         break;

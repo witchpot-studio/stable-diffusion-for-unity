@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using UnityEditor;
 #endif
 
+using ControlNetUnitRequest = Witchpot.Runtime.StableDiffusion.StableDiffusionWebUIClient.Post.SdApi.V1.Extension.ControlNet.UnitRequest;
+
 
 namespace Witchpot.Runtime.StableDiffusion
 {
@@ -41,8 +43,8 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField] private int _steps;
         public int Steps => _steps;
 
-        [SerializeField] private float _cfgScale;
-        public float CfgScale => _cfgScale;
+        [SerializeField] private double _cfgScale;
+        public double CfgScale => _cfgScale;
 
         [SerializeField] private long _seed;
         public long Seed => _seed;
@@ -96,21 +98,31 @@ namespace Witchpot.Runtime.StableDiffusion
             }
         }
 
-        protected async ValueTask LogSeedValue(byte[] image)
-        {
-            using (var client = new StableDiffusionWebUIClient.Post.SdApi.V1.PngInfo(StableDiffusionWebUISettings))
-            {
-                var body = client.GetRequestBody(image);
-
-                var responses = await client.SendRequestAsync(body);
-
-                var dic = responses.Parse();
-
-                Debug.Log($"Seed:{dic.GetValueOrDefault("Seed")}");
-            }
-        }
-
         public abstract void OnClickServerAccessButton();
+
+        public abstract ValueTask GenerateAsync();
 #endif
+
+        [Serializable]
+        public class ControlNetSettings : ControlNetUnitRequest.IDefault
+        {
+            [SerializeField][Range(0.0f, 2.0f)] private double _weight = 1.0f;
+            [SerializeField] private ControlNetUnitRequest.ResizeMode _resizeMode = ControlNetUnitRequest.ResizeMode.JustResize;
+            [SerializeField] private bool _lowVram = false;
+            [SerializeField] private int _processorRes = 64;
+            [SerializeField][Range(0.0f, 1.0f)] private double _guidanceStart = 0.0f;
+            [SerializeField][Range(0.0f, 1.0f)] private double _guidanceEnd = 1.0f;
+            [SerializeField] private ControlNetUnitRequest.ControlMode _controlMode = ControlNetUnitRequest.ControlMode.Balanced;
+            [SerializeField] private bool _pixcelPerfect = false;
+
+            public double Weight => _weight;
+            public ControlNetUnitRequest.ResizeMode ResizeMode => _resizeMode;
+            public bool LowVram => _lowVram;
+            public int ProcessorRes => _processorRes;
+            public double GuidanceStart => _guidanceStart;
+            public double GuidanceEnd => _guidanceEnd;
+            public ControlNetUnitRequest.ControlMode ControlMode => _controlMode;
+            public bool PixcelPerfect => _pixcelPerfect;
+        }
     }
 }

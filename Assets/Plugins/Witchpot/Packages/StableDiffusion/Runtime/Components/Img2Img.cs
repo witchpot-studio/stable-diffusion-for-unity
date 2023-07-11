@@ -20,11 +20,11 @@ namespace Witchpot.Runtime.StableDiffusion
             Camera,
         }
 
+        [SerializeField][Range(0.0f, 1.0f)] public float _denoisingStrength = 0.75f;
+
         [SerializeField] private ImageSource _imageSource = ImageSource.Texture;
         [SerializeField] private Camera _camera;
         [SerializeField] private Texture2D _image;
-
-        [SerializeField][Range(0.0f, 1.0f)] public float _denoisingStrength = 0.75f;
 
         private bool _generating = false;
 
@@ -39,9 +39,11 @@ namespace Witchpot.Runtime.StableDiffusion
         [ContextMenu("SaveCameraImage")]
         public void SaveCameraImage()
         {
-            var texture = CreateCameraViewImage();
+            var texture = ImageCapturer.CreateCameraViewImage(_camera, Width, Height);
 
             ImagePorter.SavePngImage(texture.EncodeToPNG());
+
+            AssetDatabase.Refresh();
         }
 
         public override void OnClickServerAccessButton()
@@ -66,6 +68,11 @@ namespace Witchpot.Runtime.StableDiffusion
 
             Debug.Log("Image generating started.");
 
+            GenerateAsync().Forget();
+        }
+
+        public override async ValueTask GenerateAsync()
+        {
             Texture2D texture;
 
             switch (_imageSource)
@@ -96,7 +103,7 @@ namespace Witchpot.Runtime.StableDiffusion
                             return;
                         }
 
-                        texture = CreateCameraViewImage();
+                        texture = ImageCapturer.CreateCameraViewImage(_camera, Width, Height);
                     }
                     break;
 
@@ -109,40 +116,14 @@ namespace Witchpot.Runtime.StableDiffusion
 
             if (BatchCount == 1)
             {
-                GenerateSingle(texture.EncodeToPNG()).Forget();
+                await GenerateSingle(texture.EncodeToPNG());
             }
             else if (BatchCount > 1)
             {
-                GenerateLoop(texture.EncodeToPNG(),BatchCount).Forget();
-            }
-        }
-
-        private Texture2D CreateCameraViewImage()
-        {
-            var view = Handles.GetMainGameViewSize();
-            int width = (int)view.x;
-            int hight = (int)view.y;
-
-            var render = new RenderTexture(width, hight, 24);
-            render.antiAliasing = 8;
-
-            var texture = new Texture2D(width, hight, TextureFormat.RGB24, false);
-
-            try
-            {
-                _camera.targetTexture = render;
-                _camera.Render();
-                RenderTexture.active = render;
-                texture.ReadPixels(new Rect(0, 0, width, hight), 0, 0);
-                texture.Apply();
-            }
-            finally
-            {
-                _camera.targetTexture = null;
-                RenderTexture.active = null;
+                await GenerateLoop(texture.EncodeToPNG(), BatchCount);
             }
 
-            return texture;
+            AssetDatabase.Refresh();
         }
 
         private async ValueTask GenerateSingle(byte[] img)
@@ -195,9 +176,10 @@ namespace Witchpot.Runtime.StableDiffusion
                 var responses = await client.SendRequestAsync(body);
 
                 generated = responses.GetImage();
-            }
 
-            await LogSeedValue(generated);
+                var info = responses.GetInfo();
+                Debug.Log($"Seed : {info.seed}");
+            }
 
             if (ImagePorter.SavePngImage(generated))
             {

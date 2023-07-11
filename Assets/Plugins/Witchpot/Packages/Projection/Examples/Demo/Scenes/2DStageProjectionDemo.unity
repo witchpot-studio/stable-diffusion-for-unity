@@ -352,6 +352,16 @@ PrefabInstance:
       objectReference: {fileID: 2800000, guid: 078d77c5e9896b6458e8a7bbb91b9ee6, type: 3}
     - target: {fileID: 755830784144523964, guid: bc8b0eed5f2a33142bec5b9633e49db9,
         type: 3}
+      propertyPath: cameraProjection
+      value: 
+      objectReference: {fileID: 961739752}
+    - target: {fileID: 755830784144523964, guid: bc8b0eed5f2a33142bec5b9633e49db9,
+        type: 3}
+      propertyPath: textureProjection
+      value: 
+      objectReference: {fileID: 2800000, guid: 078d77c5e9896b6458e8a7bbb91b9ee6, type: 3}
+    - target: {fileID: 755830784144523964, guid: bc8b0eed5f2a33142bec5b9633e49db9,
+        type: 3}
       propertyPath: projectorSettings.aspect
       value: 3.5555556
       objectReference: {fileID: 0}
@@ -800,21 +810,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _stableDiffusionWebUISettings: {fileID: 11400000, guid: 44c0a24ec1fd6d548a0862fa02c7b539,
     type: 2}
+  _prompt: icestage, 2D side scroller game stage, level design<lora:witchpot-icestage-sd-1-5:1>
+  _negativePrompt: character, enemy
+  _size: {x: 1920, y: 540}
+  _steps: 50
+  _cfgScale: 7
+  _seed: -1
+  _batchCount: 1
+  _selectedSamplerIndex: 0
+  _selectedModelIndex: 0
+  _denoisingStrength: 0.1
   _imageSource: 1
   _camera: {fileID: 961739752}
   _image: {fileID: 0}
-  _prompt: icestage, 2D side scroller game stage, level design<lora:witchpot-icestage-sd-1-5:1>
-  _negativePrompt: character, enemy
-  _width: 1920
-  _height: 540
-  _steps: 50
-  _cfgScale: 7
-  _denoisingStrength: 0.1
-  _seed: -1
-  _batchCount: 1
-  _selectedSampler: 0
-  _selectedModel: 0
-  _selectedLoraModel: 0
 --- !u!1 &1186505058
 GameObject:
   m_ObjectHideFlags: 0
@@ -1007,18 +1015,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _stableDiffusionWebUISettings: {fileID: 11400000, guid: 44c0a24ec1fd6d548a0862fa02c7b539,
     type: 2}
-  _pipelineAsset: {fileID: 11400000, guid: 722591999ba1e6c4d8b0d4444cc1347b, type: 2}
-  _mainRendererFeature: {fileID: -880672467421428833, guid: a98b8f1ad9b24f64badc78abda4c10f2,
-    type: 2}
-  _camera: {fileID: 961739752}
   _prompt: icestage, 2D side scroller game stage, level design<lora:witchpot-icestage-sd-1-5:1>
   _negativePrompt: character, enemy
-  _width: 1920
-  _height: 540
+  _size: {x: 1920, y: 540}
   _steps: 50
   _cfgScale: 10
   _seed: -1
   _batchCount: 1
+  _selectedSamplerIndex: 0
+  _selectedModelIndex: 0
+  _camera: {fileID: 961739752}
+  _imageCapturer: {fileID: 11400000, guid: 37210e8e01f55d645863f13954972a9d, type: 2}
   _controlNetSettings:
     _weight: 2
     _resizeMode: 0
@@ -1028,9 +1035,7 @@ MonoBehaviour:
     _guidanceEnd: 1
     _controlMode: 0
     _pixcelPerfect: 0
-  _selectedSampler: 0
-  _selectedModel: 0
-  _selectedLoraModel: 1
+  _selectedControlNetModelIndexIndex: 0
 --- !u!1 &1447261866
 GameObject:
   m_ObjectHideFlags: 0
@@ -1086,15 +1091,13 @@ MonoBehaviour:
     type: 2}
   _prompt: icestage, 2D side scroller game stage, level design<lora:witchpot-icestage-sd-1-5:1>
   _negativePrompt: character, enemy
-  _width: 1920
-  _height: 540
+  _size: {x: 1920, y: 540}
   _steps: 50
   _cfgScale: 7
   _seed: -1
   _batchCount: 1
-  _selectedSampler: 0
-  _selectedModel: 0
-  _selectedLoraModel: 0
+  _selectedSamplerIndex: 0
+  _selectedModelIndex: 0
 --- !u!114 &1447261869
 MonoBehaviour:
   m_ObjectHideFlags: 0

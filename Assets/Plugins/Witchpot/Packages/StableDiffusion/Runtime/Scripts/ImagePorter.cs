@@ -41,7 +41,6 @@ namespace Witchpot.Runtime.StableDiffusion
             var path = Path.Combine(dir, $"{filename}.png");
 
             File.WriteAllBytes(path, data);
-            AssetDatabase.Refresh();
 
             return true;
         }
@@ -95,7 +94,6 @@ namespace Witchpot.Runtime.StableDiffusion
             }
 
             File.WriteAllBytes(path, data);
-            AssetDatabase.Refresh();
 
             return true;
         }
@@ -141,6 +139,7 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 exporter(texture, image);
 
+                /*
                 if (!Application.isPlaying)
                 {
                     AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
@@ -148,6 +147,7 @@ namespace Witchpot.Runtime.StableDiffusion
                     EditorSceneManager.MarkAllScenesDirty();
                     EditorUtility.RequestScriptReload();
                 }
+                */
 
                 return true;
             }
