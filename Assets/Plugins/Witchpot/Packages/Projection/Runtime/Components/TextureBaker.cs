@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +22,7 @@ namespace Witchpot.Runtime.Projection
         private Vector2Int textureSize = new Vector2Int(1024, 1024);
 
         [SerializeField]
-        private string targetDirectory;
+        private string exportDirectory;
 
         [SerializeField]
         private Material bakeMaterialGlobal;
@@ -55,11 +55,14 @@ namespace Witchpot.Runtime.Projection
                 projector = GetComponent<CameraImageProjector>();
             }
 
-            if (string.IsNullOrEmpty(targetDirectory))
+            if (PrefabUtility.IsPartOfNonAssetPrefabInstance(gameObject) && string.IsNullOrEmpty(exportDirectory))
             {
-                var scene = this.gameObject.scene;
+                var scene = gameObject.scene.name;
 
-                targetDirectory = $"Assets/BakedTexture/{scene.name}/{this.name}/";
+                if (!string.IsNullOrEmpty(scene))
+                {
+                    exportDirectory = $"Assets/BakedTexture/{scene}/{this.name}/";
+                }
             }
         }
 
@@ -78,7 +81,7 @@ namespace Witchpot.Runtime.Projection
 
         public void Bake()
         {
-            StartBake(textureSize.x, textureSize.y, targetDirectory);
+            StartBake(textureSize.x, textureSize.y, exportDirectory);
         }
 
         private void StartBake(int width, int height, string outputDirectory)
@@ -243,7 +246,7 @@ namespace Witchpot.Runtime.Projection
 
 
 #if UNITY_EDITOR
-            // TODO: "Assets/"à»â∫ÇÃëäëŒÉpÉXÇ©Ç«Ç§Ç©Çå©ÇÈ
+            // TODO: "Assets/"‰ª•‰∏ã„ÅÆÁõ∏ÂØæ„Éë„Çπ„Åã„Å©„ÅÜ„Åã„ÇíË¶ã„Çã
             AssetDatabase.ImportAsset(outputPath, ImportAssetOptions.ForceUpdate);
             AssetDatabase.Refresh();
 

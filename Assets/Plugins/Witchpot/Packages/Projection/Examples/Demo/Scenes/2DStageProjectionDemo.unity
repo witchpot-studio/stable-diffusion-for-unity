@@ -287,6 +287,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 755830784144523962, guid: bc8b0eed5f2a33142bec5b9633e49db9,
         type: 3}
+      propertyPath: exportDirectory
+      value: Assets/BakedTexture/2DStageProjectionDemo/Projector/
+      objectReference: {fileID: 0}
+    - target: {fileID: 755830784144523962, guid: bc8b0eed5f2a33142bec5b9633e49db9,
+        type: 3}
       propertyPath: targetDirectory
       value: Assets/BakedTexture/2DStageProjectionDemo/Projector/
       objectReference: {fileID: 0}

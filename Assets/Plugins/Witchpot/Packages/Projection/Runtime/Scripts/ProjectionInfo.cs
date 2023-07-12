@@ -35,12 +35,24 @@ namespace Witchpot.Runtime.Projection
 
         public ProjectorSettings(Camera camera)
         {
-            orthographic = camera.orthographic;
-            orthographicSize = camera.orthographicSize;
-            aspect = camera.aspect;
-            nearClipPlane = camera.nearClipPlane;
-            farClipPlane = camera.farClipPlane;
-            fieldOfView = camera.fieldOfView;
+            if (camera == null)
+            {
+                orthographic = false;
+                orthographicSize = 5;
+                aspect = 1.7777f;
+                nearClipPlane = 0.3f;
+                farClipPlane = 1000;
+                fieldOfView = 60.0f;
+            }
+            else
+            {
+                orthographic = camera.orthographic;
+                orthographicSize = camera.orthographicSize;
+                aspect = camera.aspect;
+                nearClipPlane = camera.nearClipPlane;
+                farClipPlane = camera.farClipPlane;
+                fieldOfView = camera.fieldOfView;
+            }
         }
 
         public void DrawGizmo(Transform transform)

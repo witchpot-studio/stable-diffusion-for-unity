@@ -46,17 +46,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08dae092233197644b386be076b4df6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  texture: {fileID: 0}
-  projectorSettings:
-    orthographic: 0
-    orthographicSize: 5
-    aspect: 1.7777778
-    nearClipPlane: 0.3
-    farClipPlane: 20
-    fieldOfView: 60
-  toCopyValues: {fileID: 0}
+  textureProjection: {fileID: 0}
+  cameraProjection: {fileID: 0}
   projectionType: 0
   renderers: []
+  drawGizmosProjectionTarget: 1
+  autoProjection: 0
 --- !u!114 &755830784144523965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -88,6 +83,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   projector: {fileID: 755830784144523964}
   textureSize: {x: 1024, y: 1024}
-  targetDirectory: Assets/BakedTexture/3DStageProjectionDemo/Projector/
+  exportDirectory: 
   bakeMaterialGlobal: {fileID: 2100000, guid: a485a8121bdd3614cb0cf129c4be94ec, type: 2}
   bakeMaterial: {fileID: 2100000, guid: 0065f8fed72b8e9478800bca13fc7f48, type: 2}

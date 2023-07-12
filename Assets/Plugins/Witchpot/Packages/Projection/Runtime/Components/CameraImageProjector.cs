@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.SearchService;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -20,6 +21,8 @@ namespace Witchpot.Runtime.Projection
         private readonly static int vpMatrixShaderNameID = Shader.PropertyToID("_ProjectorMatrixVP");
         private readonly static int textureShaderNameID = Shader.PropertyToID("_ProjectionMap");
         private readonly static int positionShaderNameID = Shader.PropertyToID("_ProjectorPosition");
+
+        private readonly static Renderer[] blankRenderers = new Renderer[0];
 
         public enum EProjectionType
         {
@@ -42,10 +45,13 @@ namespace Witchpot.Runtime.Projection
         public IReadOnlyList<Renderer> TargetRenderers => renderers;
 
         [SerializeField]
+        private bool drawGizmosProjectionTarget = true;
+
+        [SerializeField]
         private bool autoProjection = false;
         public bool AutoProjection => autoProjection;
 
-        public bool IsValid => textureProjection != null && transform != null;
+        public bool IsValid => textureProjection != null && cameraProjection != null;
 
         private void Update()
         {
@@ -60,10 +66,8 @@ namespace Witchpot.Runtime.Projection
             return new ProjectionInfo(transform, cameraProjection);
         }
 
-        private void ApplyProjectionInfoToGlobal()
+        private void ApplyProjectionInfoToGlobal(ProjectionInfo info)
         {
-            var info = GetProjectionInfo();
-
             Shader.SetGlobalTexture(textureShaderGlobalNameID, textureProjection);
             Shader.SetGlobalMatrix(vpMatrixShaderGlobalNameID, info.GpuProjectionMatrix * info.ViewMatrix);
             Shader.SetGlobalVector(positionShaderGlobalNameID, info.ProjectorPosition);
@@ -84,10 +88,8 @@ namespace Witchpot.Runtime.Projection
             }
         }
 
-        private void ApplyProjectionInfoToRenderers()
+        private void ApplyProjectionInfoToRenderers(ProjectionInfo info)
         {
-            var info = GetProjectionInfo();
-
             var materials = renderers
                 .Where(renderer => renderer != null)
                 .SelectMany(renderer => renderer.sharedMaterials)
@@ -103,21 +105,25 @@ namespace Witchpot.Runtime.Projection
         {
             if (!IsValid) { return; }
 
+            var info = GetProjectionInfo();
+
             switch (projectionType)
             {
                 case EProjectionType.Global:
                 default:
-                    ApplyProjectionInfoToGlobal();
+                    ApplyProjectionInfoToGlobal(info);
                     break;
 
                 case EProjectionType.TargetRenderers:
-                    ApplyProjectionInfoToRenderers();
+                    ApplyProjectionInfoToRenderers(info);
                     break;
             }
         }
 
         public void ApplyProjectionInfoToMaterial(Material material)
         {
+            if (!IsValid) { return; }
+
             var info = GetProjectionInfo();
 
             ApplyProjectionInfoToMaterial(material, info);
@@ -125,6 +131,8 @@ namespace Witchpot.Runtime.Projection
 
         public IEnumerable<Renderer> GetRenderersInProjectionFrustum()
         {
+            if (cameraProjection == null) { return blankRenderers; }
+
             var info = GetProjectionInfo();
 
             IReadOnlyList<Renderer> renderers;
@@ -149,5 +157,37 @@ namespace Witchpot.Runtime.Projection
                     return GeometryUtility.TestPlanesAABB(planes, renderer.bounds);
                 });
         }
+
+
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            DrawProjecrtionTarget();
+        }
+
+        private void DrawProjecrtionTarget()
+        {
+            if (!drawGizmosProjectionTarget) { return; }
+
+            var buffer = Gizmos.color;
+
+            try
+            {
+                Gizmos.color = Color.red;
+
+                var renderers = GetRenderersInProjectionFrustum();
+
+                foreach (var renderer in renderers)
+                {
+                    Gizmos.DrawLine(transform.position, renderer.bounds.center);
+                    Gizmos.DrawWireCube(renderer.bounds.center, renderer.bounds.size);
+                }
+            }
+            finally
+            {
+                Gizmos.color = buffer;
+            }
+        }
+#endif
     }
 }
