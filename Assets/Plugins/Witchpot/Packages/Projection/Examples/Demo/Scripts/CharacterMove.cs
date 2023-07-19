@@ -11,9 +11,10 @@ public class CharacterMove : MonoBehaviour
     [SerializeField]
     private Camera m_Camera;
 
-    //[SerializeField]
-    //private Animator m_animator;
+    [SerializeField]
+    private ParticleSystem m_TargetPosition = default;
 
+    private Vector3 m_Offset = new Vector3(0, 0.1f, 0);
 
     private void Update()
     {
@@ -24,6 +25,8 @@ public class CharacterMove : MonoBehaviour
             if (Physics.Raycast(ray, out hit, 100))
             {
                 m_agent.destination = hit.point;
+                m_TargetPosition.transform.position = hit.point + m_Offset;
+                m_TargetPosition.Emit(1);
             }
         }
 
