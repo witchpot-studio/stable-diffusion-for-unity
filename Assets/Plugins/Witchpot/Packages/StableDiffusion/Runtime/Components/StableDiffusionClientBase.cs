@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 using ControlNetUnitRequest = Witchpot.Runtime.StableDiffusion.StableDiffusionWebUIClient.Post.SdApi.V1.Extension.ControlNet.UnitRequest;
 
@@ -73,6 +67,9 @@ namespace Witchpot.Runtime.StableDiffusion
 
         public string[] LoraModelsList => StableDiffusionWebUISettings.ModelNamesForLora;
 
+        protected bool _transmitting = false;
+        public bool IsTransmitting => _transmitting;
+
         private void Reset()
         {
             ResetDefautValue();
@@ -101,6 +98,15 @@ namespace Witchpot.Runtime.StableDiffusion
         public abstract void OnClickServerAccessButton();
 
         public abstract ValueTask GenerateAsync();
+        public abstract void RefreshUnityEditor();
+
+        public virtual async ValueTask GenerateAndRefresh()
+        {
+            await GenerateAsync();
+
+            RefreshUnityEditor();
+        }
+
 #endif
 
         [Serializable]

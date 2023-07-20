@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,8 +24,6 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField] private Camera _camera;
         [SerializeField] private Texture2D _image;
 
-        private bool _generating = false;
-
         private void OnValidate()
         {
             if (_camera == null)
@@ -48,7 +44,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
         public override void OnClickServerAccessButton()
         {
-            if (_generating)
+            if (_transmitting)
             {
                 Debug.LogWarning("Generate already working.");
                 return;
@@ -68,7 +64,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
             Debug.Log("Image generating started.");
 
-            GenerateAsync().Forget();
+            GenerateAndRefresh().Forget();
         }
 
         public override async ValueTask GenerateAsync()
@@ -122,21 +118,24 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 await GenerateLoop(texture.EncodeToPNG(), BatchCount);
             }
+        }
 
-            AssetDatabase.Refresh();
+        public override void RefreshUnityEditor()
+        {
+            ImagePorter.RefreshUnityEditor();
         }
 
         private async ValueTask GenerateSingle(byte[] img)
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 await GenerateImage(img, true);
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 
@@ -144,7 +143,7 @@ namespace Witchpot.Runtime.StableDiffusion
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 for (int i = 0; i < count; i++)
                 {
@@ -153,7 +152,7 @@ namespace Witchpot.Runtime.StableDiffusion
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 

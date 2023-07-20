@@ -14,12 +14,10 @@ namespace Witchpot.Runtime.StableDiffusion
     public class Text2Img : StableDiffusionClientBase
     {
 #if UNITY_EDITOR
-
-        private bool _generating = false;
-        
+       
         public override void OnClickServerAccessButton()
         {
-            if (_generating)
+            if (_transmitting)
             {
                 Debug.LogWarning("Generate already working.");
                 return;
@@ -39,7 +37,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
             Debug.Log("Image generating started.");
 
-            GenerateAsync().Forget();
+            GenerateAndRefresh().Forget();
         }
 
         public override async ValueTask GenerateAsync()
@@ -52,21 +50,24 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 await GenerateLoop(BatchCount);
             }
+        }
 
-            AssetDatabase.Refresh();
+        public override void RefreshUnityEditor()
+        {
+            ImagePorter.RefreshUnityEditor();
         }
 
         private async ValueTask GenerateSingle()
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 await GenerateImage(true);
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 
@@ -74,7 +75,7 @@ namespace Witchpot.Runtime.StableDiffusion
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 for (int i = 0; i< count; i++)
                 {
@@ -83,7 +84,7 @@ namespace Witchpot.Runtime.StableDiffusion
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 

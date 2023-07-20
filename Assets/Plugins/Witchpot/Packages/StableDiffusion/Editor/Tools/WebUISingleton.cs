@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -586,10 +587,25 @@ namespace Witchpot.Editor.StableDiffusion
 
             UnityEngine.Debug.Log($"Stop server. (PID:{process.Id})");
 
-            process.Kill();
+            KillProcessTree(process);
             process.WaitForExit();
 
             _pidList.Remove(process.Id);
+        }
+
+        private void KillProcessTree(Process process)
+        {
+            string taskkill = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "taskkill.exe");
+
+            using (var procKiller = new Process())
+            {
+                procKiller.StartInfo.FileName = taskkill;
+                procKiller.StartInfo.Arguments = $"/PID {process.Id} /T /F";
+                procKiller.StartInfo.CreateNoWindow = true;
+                procKiller.StartInfo.UseShellExecute = false;
+                procKiller.Start();
+                procKiller.WaitForExit();
+            }
         }
 
         private bool _Stop()

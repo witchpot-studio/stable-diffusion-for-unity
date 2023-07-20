@@ -11,7 +11,7 @@ namespace Witchpot.Editor.StableDiffusion
 
             StableDiffusionWebUISettings component = (StableDiffusionWebUISettings)target;
 
-            LayoutServerAccessButton(component, "List Models");
+            LayoutServerAccessButton(component, "List Models", component.IsTransmitting);
         }
     }
 }

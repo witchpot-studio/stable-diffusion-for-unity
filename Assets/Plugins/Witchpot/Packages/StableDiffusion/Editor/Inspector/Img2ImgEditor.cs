@@ -29,7 +29,7 @@ namespace Witchpot.Editor.StableDiffusion
                 component.Prompt += StableDiffusionWebUIClient.GetLoraString(loraList[loraIndex]);
             }
 
-            LayoutServerAccessButton(component, "Generate");
+            LayoutServerAccessButton(component, "Generate", component.IsTransmitting);
 
             if (GUI.changed)
             {

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.SearchService;
 using UnityEngine;
 
@@ -52,7 +53,7 @@ namespace Witchpot.Runtime.Projection
         private Material projectionMaterial;
 
         [SerializeField]
-        private List<MaterialBuffer> buffers = new List<MaterialBuffer>();
+        private List<MaterialBuffer> buffers;
 
         private Dictionary<int, Material[]> projectionMaterialGlobalDic = new Dictionary<int, Material[]>();
         private Dictionary<int, Material[]> projectionMaterialDic = new Dictionary<int, Material[]>();

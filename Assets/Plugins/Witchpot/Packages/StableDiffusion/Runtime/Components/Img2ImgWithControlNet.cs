@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -28,25 +24,13 @@ namespace Witchpot.Runtime.StableDiffusion
         [SerializeField] private Camera _camera;
         [SerializeField] private Texture2D _image;
 
-        [SerializeField] private ProccessedImageCapturer _imageCapturer;
+        [SerializeField] private ControlType _controlType;
 
         [SerializeField] private ControlNetSettings _controlNetSettings = new();
 
-        [HideInInspector][SerializeField] private int _selectedControlNetModelIndexIndex;
-
-        public string SelectedControlNetModel => ControlNetModelList[SelectedControlNetModelIndex];
-        public string[] ControlNetModelList => StableDiffusionWebUISettings.ControlNetModelNames;
-        public int SelectedControlNetModelIndex
-        {
-            get { return _selectedControlNetModelIndexIndex; }
-            set { _selectedControlNetModelIndexIndex = value; }
-        }
-
-        private bool _generating = false;
-
         public override void OnClickServerAccessButton()
         {
-            if (_generating)
+            if (_transmitting)
             {
                 Debug.LogWarning("Generate already working.");
                 return;
@@ -66,7 +50,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
             Debug.Log("Image generating started.");
 
-            GenerateAsync().Forget();
+            GenerateAndRefresh().Forget();
         }
 
         public override async ValueTask GenerateAsync()
@@ -112,7 +96,7 @@ namespace Witchpot.Runtime.StableDiffusion
                     return;
             }
 
-            var textureControlNet = await _imageCapturer.CreatePreProcessedImageAsync(_camera, Width, Height);
+            var textureControlNet = await _controlType.ImageCapturer.CreatePreProcessedImageAsync(_camera, Width, Height);
 
             if (BatchCount == 1)
             {
@@ -122,8 +106,11 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 await GenerateLoop(textureImg.EncodeToPNG(), textureControlNet.EncodeToPNG(), BatchCount);
             }
+        }
 
-            AssetDatabase.Refresh();
+        public override void RefreshUnityEditor()
+        {
+            ImagePorter.RefreshUnityEditor();
         }
 
         [ContextMenu("SaveCameraImage")]
@@ -138,7 +125,7 @@ namespace Witchpot.Runtime.StableDiffusion
         [ContextMenu("SavePreProcessedImage")]
         public async ValueTask SavePreProcessedImage()
         {
-            var texture = await _imageCapturer.CreatePreProcessedImageAsync(_camera, Width, Height);
+            var texture = await _controlType.ImageCapturer.CreatePreProcessedImageAsync(_camera, Width, Height);
 
             ImagePorter.SavePngImage(texture.EncodeToPNG());
             AssetDatabase.Refresh();
@@ -148,13 +135,13 @@ namespace Witchpot.Runtime.StableDiffusion
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 await GenerateImage(image, imageControlNet, true);
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 
@@ -162,7 +149,7 @@ namespace Witchpot.Runtime.StableDiffusion
         {
             try
             {
-                _generating = true;
+                _transmitting = true;
 
                 for (int i = 0; i < count; i++)
                 {
@@ -171,7 +158,7 @@ namespace Witchpot.Runtime.StableDiffusion
             }
             finally
             {
-                _generating = false;
+                _transmitting = false;
             }
         }
 
@@ -191,7 +178,7 @@ namespace Witchpot.Runtime.StableDiffusion
 
                 body.SetImage(image);
 
-                body.SetAlwaysonScripts(_controlNetSettings, SelectedControlNetModel, image);
+                body.SetAlwaysonScripts(_controlNetSettings, _controlType.SelectedControlNetModel, image);
 
                 var responses = await client.SendRequestAsync(body);
 
