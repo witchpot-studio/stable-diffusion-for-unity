@@ -29,9 +29,9 @@ namespace Witchpot.Editor.StableDiffusion
                 component.Prompt += StableDiffusionWebUIClient.GetLoraString(loraList[loraIndex]);
             }
 
-            component.SelectedControlNetModelIndex = EditorGUILayout.Popup("ControlNetModel", component.SelectedControlNetModelIndex, component.ControlNetModelList);
+            // component.SelectedControlNetModelIndex = EditorGUILayout.Popup("ControlNetModel", component.SelectedControlNetModelIndex, component.ControlNetModelList);
 
-            LayoutServerAccessButton(component, "Generate");
+            LayoutServerAccessButton(component, "Generate", component.IsTransmitting);
 
             if (GUI.changed)
             {

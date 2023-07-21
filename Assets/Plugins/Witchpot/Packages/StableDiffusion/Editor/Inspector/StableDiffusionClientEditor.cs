@@ -30,13 +30,16 @@ namespace Witchpot.Editor.StableDiffusion
             }
         }
 
-        protected void LayoutServerAccessButton(IStableDiffusionClient client, string label)
+        protected void LayoutServerAccessButton(IStableDiffusionClient client, string label, bool disabled = false)
         {
             if (WebUISingleton.Status.ServerReady)
             {
-                if (GUILayout.Button(label))
+                using (new EditorGUI.DisabledScope(disabled))
                 {
-                    client.OnClickServerAccessButton();
+                    if (GUILayout.Button(label))
+                    {
+                        client.OnClickServerAccessButton();
+                    }
                 }
             }
             else if (WebUISingleton.Status.ServerStarted)
@@ -48,9 +51,12 @@ namespace Witchpot.Editor.StableDiffusion
             }
             else
             {
-                if (GUILayout.Button("Start Server"))
+                using (new EditorGUI.DisabledScope(disabled))
                 {
-                    WebUISingleton.Start();
+                    if (GUILayout.Button("Start Server"))
+                    {
+                        WebUISingleton.Start();
+                    }
                 }
             }
         }

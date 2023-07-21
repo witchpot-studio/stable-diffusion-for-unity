@@ -919,7 +919,7 @@ MonoBehaviour:
   _selectedSamplerIndex: 0
   _selectedModelIndex: 0
   _camera: {fileID: 961739752}
-  _imageCapturer: {fileID: 0}
+  _controlType: {fileID: 11400000, guid: 7b4f9880b196b8d4cbce40c8a4d42187, type: 2}
   _controlNetSettings:
     _weight: 2
     _resizeMode: 0
@@ -929,7 +929,6 @@ MonoBehaviour:
     _guidanceEnd: 1
     _controlMode: 0
     _pixcelPerfect: 0
-  _selectedControlNetModelIndexIndex: 0
 --- !u!1 &1447261866
 GameObject:
   m_ObjectHideFlags: 0

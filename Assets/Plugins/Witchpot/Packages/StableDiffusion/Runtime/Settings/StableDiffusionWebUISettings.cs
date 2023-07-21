@@ -8,6 +8,7 @@ using Witchpot.Runtime.StableDiffusion;
 using UnityEditor;
 #endif
 
+
 namespace Witchpot
 {
     public class StableDiffusionWebUISettings : ScriptableObject, IStableDiffusionClient,
@@ -72,7 +73,6 @@ namespace Witchpot
         [SerializeField] private string[] _controlNetModelNames;
         [SerializeField] private string[] _controlNetModuleNames;
 
-
         public string StableDiffusionWebUIServerURL { get => _stableDiffusionWebUIServerURL; }
 
         public string ModelsAPI => _modelsAPI;
@@ -134,6 +134,9 @@ namespace Witchpot
         public string[] ControlNetModelNames => _controlNetModelNames;
         public string[] ControlNetModuleNames => _controlNetModuleNames;
 
+        protected bool _transmitting = false;
+        public bool IsTransmitting => _transmitting;
+
 #if UNITY_EDITOR
         public void OnClickServerAccessButton()
         {
@@ -142,37 +145,46 @@ namespace Witchpot
 
         public async ValueTask ListModels()
         {
-            using (var client = new StableDiffusionWebUIClient.Get.SdApi.V1.SdModels(this))
+            _transmitting = true;
+
+            try
             {
-                var responses = await client.SendRequestAsync();
+                using (var client = new StableDiffusionWebUIClient.Get.SdApi.V1.SdModels(this))
+                {
+                    var responses = await client.SendRequestAsync();
 
-                _modelNames = responses.Select(x => x.model_name).ToArray();
+                    _modelNames = responses.Select(x => x.model_name).ToArray();
+                }
+
+                using (var client = new StableDiffusionWebUIClient.Get.ControlNet.ModelList(this))
+                {
+                    var responses = await client.SendRequestAsync();
+
+                    _controlNetModelNames = responses.model_list;
+                }
+
+                using (var client = new StableDiffusionWebUIClient.Get.ControlNet.ModuleList(this))
+                {
+                    var responses = await client.SendRequestAsync();
+
+                    _controlNetModuleNames = responses.module_list;
+                }
+
+                using (var client = new StableDiffusionWebUIClient.Get.SdApi.V1.CmdFlags(this))
+                {
+                    var responses = await client.SendRequestAsync();
+
+                    _modelNamesForLora = Directory.GetFiles(responses.lora_dir, "*", SearchOption.AllDirectories)
+                        .Select(x => Path.GetFileNameWithoutExtension(x)).ToArray();
+                }
+
+                EditorUtility.SetDirty(this);
+                AssetDatabase.SaveAssets();
             }
-
-            using (var client = new StableDiffusionWebUIClient.Get.ControlNet.ModelList(this))
+            finally
             {
-                var responses = await client.SendRequestAsync();
-
-                _controlNetModelNames = responses.model_list;
+                _transmitting = false;
             }
-
-            using (var client = new StableDiffusionWebUIClient.Get.ControlNet.ModuleList(this))
-            {
-                var responses = await client.SendRequestAsync();
-
-                _controlNetModuleNames = responses.module_list;
-            }
-
-            using (var client = new StableDiffusionWebUIClient.Get.SdApi.V1.CmdFlags(this))
-            {
-                var responses = await client.SendRequestAsync();
-
-                _modelNamesForLora = Directory.GetFiles(responses.lora_dir, "*", SearchOption.AllDirectories)
-                    .Select(x => Path.GetFileNameWithoutExtension(x)).ToArray();
-            }
-
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
         }
 #endif
     }
