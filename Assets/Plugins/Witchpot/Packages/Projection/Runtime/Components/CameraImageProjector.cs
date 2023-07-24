@@ -47,18 +47,11 @@ namespace Witchpot.Runtime.Projection
         [SerializeField]
         private bool drawGizmosProjectionTarget = true;
 
-        [SerializeField]
-        private bool autoProjection = false;
-        public bool AutoProjection => autoProjection;
-
         public bool IsValid => textureProjection != null && cameraProjection != null;
 
         private void Update()
         {
-            if (autoProjection)
-            {
-                ApplyProjectionInfo();
-            }
+            ApplyProjectionInfo();
         }
 
         private ProjectionInfo GetProjectionInfo()
