@@ -9,7 +9,7 @@ namespace Witchpot.Editor.StableDiffusion
     {
         private static string[] asset = new string[]
                 {
-                    "Assets/Plugins/Witchpot",
+                    EditorPaths.WITCHPOT_ROOT,
                 };
 
 #if WITCHPOT_DEVELOPMENT

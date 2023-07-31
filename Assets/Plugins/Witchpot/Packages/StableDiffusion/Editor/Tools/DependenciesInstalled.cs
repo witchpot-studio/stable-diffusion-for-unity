@@ -12,7 +12,7 @@ namespace Witchpot.Editor.StableDiffusion
     [FilePath(FilePath, FilePathAttribute.Location.PreferencesFolder)]
     public class DependenciesInstalled : ScriptableSingleton<DependenciesInstalled>
     {
-        public const string FilePath = "Witchpot\\DependenciesInstalled.asset";
+        public const string FilePath = EditorPaths.WITCHPOT_PREFERENCES_FOLDER + "\\DependenciesInstalled.asset";
 
         public static bool Flag { get => instance._dependenciesInstalled; set => instance._dependenciesInstalled = value; }
 

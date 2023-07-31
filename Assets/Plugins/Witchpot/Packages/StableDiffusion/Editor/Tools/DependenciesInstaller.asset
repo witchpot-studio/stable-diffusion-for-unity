@@ -2,7 +2,7 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &1
 MonoBehaviour:
-  m_ObjectHideFlags: 61
+  m_ObjectHideFlags: 53
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -14,7 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _zipRootType: 1
   _zipRelationalPath: Assets\Plugins\Witchpot\Packages\StableDiffusion\Installers\StableDiffusion.WebUI\Package.zip
+  _zipedRootFolderName: StableDiffusion.WebUI@1.3.2+witchpot.1
+  _zipedBatPath: run.bat
+  _zipedPythonExePath: system\python\python.exe
+  _webuiExpectedVersion: 3.32.0
+  _webuiControlNetExpectedVersion: 2
   _destinationRootType: 2
   _destinationRelationalPath: Witchpot
-  _destinationRelationalBatPath: Witchpot\StableDiffusion.WebUI@1.2.0\run.bat
   _uninstalled_: 0

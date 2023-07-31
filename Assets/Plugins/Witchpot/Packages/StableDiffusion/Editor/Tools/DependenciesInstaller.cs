@@ -11,7 +11,7 @@ namespace Witchpot.Editor.StableDiffusion
     [FilePath(FilePath, FilePathAttribute.Location.ProjectFolder)]
     public class DependenciesInstaller : ScriptableSingleton<DependenciesInstaller>
     {
-        public const string FilePath = "Assets/Plugins/Witchpot/Packages/StableDiffusion/Editor/Tools/DependenciesInstaller.asset";
+        public const string FilePath = EditorPaths.WITCHPOT_ROOT + "\\Packages\\StableDiffusion\\Editor\\Tools\\DependenciesInstaller.asset";
 
         public enum RootType
         {
@@ -20,7 +20,17 @@ namespace Witchpot.Editor.StableDiffusion
             SystemUserProfile
         }
 
-        public static bool UninstalledFlag => instance._uninstalled_; 
+        public static bool IsAvailable => instance != null;
+        public static bool UninstalledFlag => instance._uninstalled_;
+        public static bool IsModified => instance.modified;
+
+        public static string ZipAbsolutePath => Path.Combine(GetRootPath(instance._zipRootType), instance._zipRelationalPath);
+        public static string DestinationAbsolutePath => Path.Combine(GetRootPath(instance._destinationRootType), instance._destinationRelationalPath);
+        public static string DestinationBatPath => Path.Combine(DestinationAbsolutePath, instance._zipedRootFolderName, instance._zipedBatPath);
+        public static string DestinationPythonExePath => Path.Combine(DestinationAbsolutePath, instance._zipedRootFolderName, instance._zipedPythonExePath);
+
+        public static string WebuiExpectedVersion => instance._webuiExpectedVersion; // "3.32.0";
+        public static int WebuiControlNetExpectedVersion => instance._webuiControlNetExpectedVersion; // 2;
 
         static DependenciesInstaller()
         {
@@ -34,6 +44,27 @@ namespace Witchpot.Editor.StableDiffusion
 
             // It invoke Awake
             if (instance) { }
+        }
+
+        public static SerializedObject GetSerialized()
+        {
+            if (instance.hideFlags.HasFlag(HideFlags.NotEditable))
+            {
+                instance.hideFlags -= HideFlags.NotEditable;
+            }
+
+            return new SerializedObject(instance);
+        }
+
+        public static void SetModified()
+        {
+            instance.modified = true;
+        }
+
+        public static void Save()
+        {
+            EditorApplication.delayCall += () => instance.Save(true);
+            instance.modified = false;
         }
 
         [MenuItem("Witchpot/Utility/(Re)Install Dependencies", priority = 10)]
@@ -52,11 +83,6 @@ namespace Witchpot.Editor.StableDiffusion
         public static void Open()
         {
             instance.OpenInstalledDir();
-        }
-
-        private static void Save()
-        {
-            EditorApplication.delayCall += () => instance.Save(true);
         }
 
 #if WITCHPOT_DEVELOPMENT
@@ -115,33 +141,43 @@ namespace Witchpot.Editor.StableDiffusion
         }
 
         [SerializeField]
-        private RootType _zipRootType; // = RootType.UnityProject;
+        private RootType _zipRootType;
 
         [SerializeField]
-        private string _zipRelationalPath; // = "Assets\\Plugins\\Witchpot\\Packages\\StableDiffusion\\Installers\\StableDiffusion.WebUI\\Package.zip";
+        private string _zipRelationalPath;
 
         [SerializeField]
-        private RootType _destinationRootType; // = RootType.SystemUserProfile;
+        private string _zipedRootFolderName;
 
         [SerializeField]
-        private string _destinationRelationalPath; // = "Witchpot";
+        private string _zipedBatPath;
 
         [SerializeField]
-        private string _destinationRelationalBatPath = "Witchpot\\StableDiffusion.WebUI@1.2.0\\run.bat";
+        private string _zipedPythonExePath;
+
+        [SerializeField]
+        private string _webuiExpectedVersion;
+
+        [SerializeField]
+        private int _webuiControlNetExpectedVersion;
+
+        [SerializeField]
+        private RootType _destinationRootType;
+
+        [SerializeField]
+        private string _destinationRelationalPath;
 
 #pragma warning disable CS0414
         // It doesn't work correctly if the name is _uninstalled
         [SerializeField]
-        private bool _uninstalled_; // = false;
+        private bool _uninstalled_;
 #pragma warning restore CS0414
 
-        public string ZipAbsolutePath => Path.Combine(GetRootPath(_zipRootType), _zipRelationalPath);
-        public string DestinationAbsolutePath => Path.Combine(GetRootPath(_destinationRootType), _destinationRelationalPath);
-        public string DestinationBatPath => Path.Combine(GetRootPath(_destinationRootType), _destinationRelationalBatPath);
+        private bool modified = false;
 
         private void OnEnable()
         {
-            // UnityEngine.Debug.Log($"DependenciesInstaller OnEnable : {DependenciesInstalled.Flag} {_uninstalled_}");
+            //UnityEngine.Debug.Log($"DependenciesInstaller OnEnable : {DependenciesInstalled.Flag} {_uninstalled_}");
 
 #if !WITCHPOT_DEVELOPMENT
             if (!DependenciesInstalled.Flag && !_uninstalled_)
@@ -151,11 +187,20 @@ namespace Witchpot.Editor.StableDiffusion
 #endif
         }
 
+        /*
         private void OnDisable()
         {
+            //UnityEngine.Debug.Log($"DependenciesInstaller OnDisable");
+
             // It is bad, because generating .asset file after package deleted
             // Save();
         }
+
+        private void OnDestroy()
+        {
+            //UnityEngine.Debug.Log($"DependenciesInstaller OnDestroy");
+        }
+        */
 
         private const string _installTitle = "Installing dependencies";
         private const string _installOK = "Delete and Install";
@@ -178,7 +223,6 @@ namespace Witchpot.Editor.StableDiffusion
 
                 // Destination
                 var destinationAbsolutePath = DestinationAbsolutePath;
-                var destinationBatPath = DestinationBatPath;
 
                 if (Directory.Exists(destinationAbsolutePath))
                 {

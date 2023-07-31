@@ -57,7 +57,7 @@ MonoBehaviour:
   - witchpot_isometric_canal_city
   _controlNetModelNames:
   - control_v11f1p_sd15_depth_fp16 [4b72d323]
-  - control_v11p_sd15_normalbae [316696f1]
+  - control_v11p_sd15_normalbae_fp16 [592a19d8]
   _controlNetModuleNames:
   - none
   - canny
