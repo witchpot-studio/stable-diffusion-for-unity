@@ -17,7 +17,7 @@ namespace Witchpot.Editor.StableDiffusion
 
         private static float m_Space = 10.0f;
 
-        class Styles
+        private class Styles
         {
             public static GUIContent use = new GUIContent("Using StableDiffusion");
             public static GUIContent stop_server = new GUIContent("Stop Server");
@@ -35,11 +35,30 @@ namespace Witchpot.Editor.StableDiffusion
 
             public static GUIContent infomation = new GUIContent("Infomation");
             public static GUIContent version = new GUIContent("Version");
-            public static GUIContent version_number = new GUIContent("1.3.0"); // HACK: The version is hard corded
+            public static GUIContent version_number = new GUIContent("1.4.0"); // HACK: The version is hard corded
             public static GUIContent document = new GUIContent("Open Document");
             public static GUIContent discord_jp = new GUIContent("Discord JP");
             public static GUIContent discord_en = new GUIContent("Discord EN");
         }
+
+#if WITCHPOT_DEVELOPMENT
+        private class StylesDevelopment
+        {
+            public static GUIContent development = new GUIContent("Development");
+            public static GUIContent installerAssetFilePath = new GUIContent("Installer Settings Asset File Path");
+            public static GUIContent zipRootType = new GUIContent("Zip Root Type");
+            public static GUIContent zipRelationalPath = new GUIContent("Zip Relational Path");
+            public static GUIContent zipedRootFolderName = new GUIContent("Ziped Root Folder Name");            
+            public static GUIContent zipedBatPath = new GUIContent("Ziped Bat Path");
+            public static GUIContent zipedPythonExePath = new GUIContent("Ziped Python Exe Path");
+            public static GUIContent webuiExpectedVersion = new GUIContent("WebUI Expected Version");
+            public static GUIContent webuiControlNetExpectedVersion = new GUIContent("ControlNet Expected Version");
+            public static GUIContent destinationRootType = new GUIContent("Destination Root Type");
+            public static GUIContent destinationRelationalPath = new GUIContent("Destination Relational Path");
+            public static GUIContent destinationBatPath = new GUIContent("Destination Bat Path");
+            public static GUIContent save = new GUIContent("Save into asset");
+        }
+#endif
 
         // Register the SettingsProvider
         [SettingsProvider]
@@ -64,12 +83,7 @@ namespace Witchpot.Editor.StableDiffusion
         public static void Open()
         {
             SettingsService.OpenUserPreferences(Path);
-        }        
-
-        private SerializedObject m_CustomSettings;
-
-        private SerializedProperty m_UsingStableDiffusion;
-        private SerializedProperty m_ExternalPath;
+        }
 
         public Preferences(string path, SettingsScope scope = SettingsScope.User)
             : base(path, scope)
@@ -101,90 +115,171 @@ namespace Witchpot.Editor.StableDiffusion
 
         public override void OnGUI(string searchContext)
         {
-            m_CustomSettings = WebUISingleton.GetSerialized();
+            var widthBUffer = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 200;
 
-            m_UsingStableDiffusion = m_CustomSettings.FindProperty("_usingStableDiffusion");
-            m_ExternalPath = m_CustomSettings.FindProperty("_externalPath");
-
-            //m_CustomSettings.Update();
-
-            // Use IMGUI to display UI:
-            EditorGUILayout.PropertyField(m_UsingStableDiffusion, Styles.use);
-
-            if (WebUISingleton.Status.ServerReady)
+            try
             {
-                if (GUILayout.Button(Styles.stop_server))
+                var webUI = WebUISingleton.GetSerialized();
+
+                var usingStableDiffusion = webUI.FindProperty("_usingStableDiffusion");
+                var externalPath = webUI.FindProperty("_externalPath");
+
+                //m_CustomSettings.Update();
+
+                // Use IMGUI to display UI:
+                EditorGUILayout.PropertyField(usingStableDiffusion, Styles.use);
+
+                if (WebUISingleton.Status.ServerReady)
                 {
-                    WebUISingleton.Stop();
+                    if (GUILayout.Button(Styles.stop_server))
+                    {
+                        WebUISingleton.Stop();
+                    }
+
+                }
+                else if (WebUISingleton.Status.ServerStarted)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        GUILayout.Button(Styles.server_starting);
+                    }
+                }
+                else
+                {
+                    if (GUILayout.Button(Styles.start_server))
+                    {
+                        WebUISingleton.Start();
+                    }
                 }
 
-            }
-            else if (WebUISingleton.Status.ServerStarted)
-            {
+                Separater(Styles.internal_sd);
+
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    GUILayout.Button(Styles.server_starting);
+                    EditorGUILayout.TextField(Styles.internal_path, DependenciesInstaller.DestinationBatPath);
                 }
+
+                using (new EditorGUILayout.HorizontalScope(m_Hight))
+                {
+                    if (GUILayout.Button(Styles.install))
+                    {
+                        DependenciesInstaller.Install();
+                    }
+
+                    if (GUILayout.Button(Styles.uninstall))
+                    {
+                        DependenciesInstaller.Uninstall();
+                    }
+
+                    if (GUILayout.Button(Styles.open_dir))
+                    {
+                        DependenciesInstaller.Open();
+                    }
+                }
+
+                Separater(Styles.external_sd);
+
+                EditorGUILayout.PropertyField(externalPath, Styles.external_path);
+
+                webUI.ApplyModifiedPropertiesWithoutUndo();
+
+                Separater(Styles.infomation);
+
+                EditorGUILayout.LabelField(Styles.version, Styles.version_number);
+
+                using (new EditorGUILayout.HorizontalScope(m_Hight))
+                {
+                    if (GUILayout.Button(Styles.document))
+                    {
+                        Application.OpenURL(EditorPaths.WITCHPOT_DOCUMENT_URL);
+                    }
+
+                    if (GUILayout.Button(Styles.discord_jp))
+                    {
+                        Application.OpenURL(EditorPaths.WITCHPOT_DISCORD_JP_URL);
+                    }
+
+                    if (GUILayout.Button(Styles.discord_en))
+                    {
+                        Application.OpenURL(EditorPaths.WITCHPOT_DISCORD_EN_URL);
+                    }
+                }
+
+
+#if WITCHPOT_DEVELOPMENT
+                Separater(StylesDevelopment.development);
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.TextField(StylesDevelopment.installerAssetFilePath, DependenciesInstaller.FilePath);
+                }
+
+                var dependencies = DependenciesInstaller.GetSerialized();
+
+                dependencies.Update();
+
+                var zipRootType = dependencies.FindProperty("_zipRootType");
+                EditorGUILayout.PropertyField(zipRootType, StylesDevelopment.zipRootType);
+
+                var zipRelationalPath = dependencies.FindProperty("_zipRelationalPath");                
+                EditorGUILayout.PropertyField(zipRelationalPath, StylesDevelopment.zipRelationalPath);
+
+                var zipedRootFolderName = dependencies.FindProperty("_zipedRootFolderName");
+                EditorGUILayout.PropertyField(zipedRootFolderName, StylesDevelopment.zipedRootFolderName);
+
+                var zipedBatPath = dependencies.FindProperty("_zipedBatPath");
+                EditorGUILayout.PropertyField(zipedBatPath, StylesDevelopment.zipedBatPath);
+
+                var zipedPythonExePath = dependencies.FindProperty("_zipedPythonExePath");
+                EditorGUILayout.PropertyField(zipedPythonExePath, StylesDevelopment.zipedPythonExePath);
+
+                var webuiExpectedVersion = dependencies.FindProperty("_webuiExpectedVersion");
+                EditorGUILayout.PropertyField(webuiExpectedVersion, StylesDevelopment.webuiExpectedVersion);
+
+                var webuiControlNetExpectedVersion = dependencies.FindProperty("_webuiControlNetExpectedVersion");
+                EditorGUILayout.PropertyField(webuiControlNetExpectedVersion, StylesDevelopment.webuiControlNetExpectedVersion);
+
+                var destinationRootType = dependencies.FindProperty("_destinationRootType");
+                EditorGUILayout.PropertyField(destinationRootType, StylesDevelopment.destinationRootType);
+                
+                var destinationRelationalPath = dependencies.FindProperty("_destinationRelationalPath");
+                EditorGUILayout.PropertyField(destinationRelationalPath, StylesDevelopment.destinationRelationalPath);
+
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.TextField(StylesDevelopment.destinationBatPath, DependenciesInstaller.DestinationBatPath);
+                }
+
+                if (dependencies.ApplyModifiedProperties())
+                {
+                    DependenciesInstaller.SetModified();
+                }
+
+                using (new EditorGUI.DisabledScope(!DependenciesInstaller.IsModified))
+                {
+                    var colorBuffer = GUI.color;
+
+                    if (DependenciesInstaller.IsModified)
+                    {
+                        GUI.color = Color.red;
+                    }
+
+                    if (GUILayout.Button(StylesDevelopment.save))
+                    {
+                        DependenciesInstaller.Save();
+                    }
+
+                    if (DependenciesInstaller.IsModified)
+                    {
+                        GUI.color = colorBuffer;
+                    }
+                }
+#endif
             }
-            else
+            finally
             {
-                if (GUILayout.Button(Styles.start_server))
-                {
-                    WebUISingleton.Start();
-                }
-            }
-
-            Separater(Styles.internal_sd);
-
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUILayout.TextField(Styles.internal_path, DependenciesInstaller.instance.DestinationBatPath);
-            }
-
-            using (new EditorGUILayout.HorizontalScope(m_Hight))
-            {
-                if (GUILayout.Button(Styles.install))
-                {
-                    DependenciesInstaller.Install();
-                }
-
-                if (GUILayout.Button(Styles.uninstall))
-                {
-                    DependenciesInstaller.Uninstall();
-                }
-
-                if (GUILayout.Button(Styles.open_dir))
-                {
-                    DependenciesInstaller.Open();
-                }
-            }
-
-            Separater(Styles.external_sd);
-
-            EditorGUILayout.PropertyField(m_ExternalPath, Styles.external_path);
-
-            m_CustomSettings.ApplyModifiedPropertiesWithoutUndo();
-
-            Separater(Styles.infomation);
-
-            EditorGUILayout.LabelField(Styles.version, Styles.version_number);
-
-            using (new EditorGUILayout.HorizontalScope(m_Hight))
-            {
-                if (GUILayout.Button(Styles.document))
-                {
-                    Application.OpenURL(EditorPaths.WITCHPOT_DOCUMENT_URL);
-                }
-
-                if (GUILayout.Button(Styles.discord_jp))
-                {
-                    Application.OpenURL(EditorPaths.WITCHPOT_DISCORD_JP_URL);
-                }
-
-                if (GUILayout.Button(Styles.discord_en))
-                {
-                    Application.OpenURL(EditorPaths.WITCHPOT_DISCORD_EN_URL);
-                }
+                EditorGUIUtility.labelWidth = widthBUffer;
             }
         }
     }

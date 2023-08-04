@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -15,9 +16,11 @@ using Witchpot.Runtime.StableDiffusion;
 namespace Witchpot.Editor.StableDiffusion
 {
     [InitializeOnLoad]
-    [FilePath("Witchpot/WebUISingleton.asset", FilePathAttribute.Location.PreferencesFolder)]
+    [FilePath(FilePath, FilePathAttribute.Location.PreferencesFolder)]
     public class WebUISingleton : ScriptableSingleton<WebUISingleton>
     {
+        public const string FilePath = EditorPaths.WITCHPOT_PREFERENCES_FOLDER + "\\WebUISingleton.asset";
+
         public enum StableDiffusionMode
         {
             Internal,
@@ -123,42 +126,7 @@ namespace Witchpot.Editor.StableDiffusion
             //     UnityEngine.Debug.Log($"listed server (PID:{pid})");
             // }
 
-            switch (_server)
-            {
-                case ServerType.Internal:
-                    _UseShellExecute = false;
-                    _CreateNoWindow = true;
-                    _UseRedirectStandardOutput = true;
-                    _ProcessName = "python";
-                    _WorkingDirectory = string.Empty;
-                    _FileName = EditorPaths.PYTHON_EXE_PATH;
-                    _Arguments = $"-u {EditorPaths.WEBUI_SCRIPT_PATH}";
-                    _Verb = string.Empty;
-                    break;
-
-                case ServerType.InternalBat:
-                    _UseShellExecute = false;
-                    _CreateNoWindow = true;
-                    _UseRedirectStandardOutput = true;
-                    _ProcessName = "cmd";
-                    _WorkingDirectory = string.Empty;
-                    _FileName = "cmd.exe";
-                    _Arguments = $"/c";
-                    _Verb = "RunAs";
-                    break;
-
-                default:
-                case ServerType.External:
-                    _UseShellExecute = true;
-                    _CreateNoWindow = false;
-                    _UseRedirectStandardOutput = false;
-                    _ProcessName = "python";
-                    _WorkingDirectory = string.Empty;
-                    _FileName = EditorPaths.PYTHON_EXE_PATH;
-                    _Arguments = $"{EditorPaths.WEBUI_SCRIPT_PATH}";
-                    _Verb = string.Empty;
-                    break;
-            }
+            UpdateProcessStartInfo();
 
             RestoreEventsForListedProcess();
         }
@@ -259,17 +227,48 @@ namespace Witchpot.Editor.StableDiffusion
             {
                 try
                 {
-                    var _get = new StableDiffusionWebUIClient.Get.AppId();
-                    var result = await _get.SendRequestAsync();
+                    string id;
 
-                    if (Regex.IsMatch(result.app_id, "^[0-9]+$"))
+                    using (var client = new StableDiffusionWebUIClient.Get.AppId())
                     {
-                        SetServerArgs(ServerStarted, result.app_id, true);
+                        var result = await client.SendRequestAsync();
+                        id = result.app_id;
+                    }
+
+                    if (Regex.IsMatch(id, "^[0-9]+$"))
+                    {
+                        SetServerArgs(ServerStarted, id, true);
                         UnityEngine.Debug.Log($"Server AppId : {ServerAppId}");
                     }
                     else
                     {
                         SetServerArgs(ServerStarted, string.Empty, true);
+                    }
+
+                    string versionSD;
+                    using (var client = new StableDiffusionWebUIClient.Get.Config())
+                    {
+                        var result = await client.SendRequestAsync();
+                        versionSD = result.GetVersion();
+                    }
+                    UnityEngine.Debug.Log($"StableDiffusion version : {versionSD}");
+
+                    if (!string.Equals(versionSD, DependenciesInstaller.WebuiExpectedVersion))
+                    {
+                        UnityEngine.Debug.LogWarning($"StableDiffusion version is different. Reinstallation will be needed.\nCurrent : {versionSD}\nExpected : {DependenciesInstaller.WebuiExpectedVersion}");
+                    }
+
+                    int versionCN;
+                    using (var client = new StableDiffusionWebUIClient.Get.ControlNet.Version())
+                    {
+                        var result = await client.SendRequestAsync();
+                        versionCN = result.version;
+                    }
+                    UnityEngine.Debug.Log($"ControlNet version : {versionCN}");
+
+                    if (!int.Equals(versionCN, DependenciesInstaller.WebuiControlNetExpectedVersion))
+                    {
+                        UnityEngine.Debug.LogWarning($"ControlNet version is different. Reinstallation will be needed.\nCurrent : {versionCN}\nExpected : {DependenciesInstaller.WebuiControlNetExpectedVersion}");
                     }
 
                     UnityEngine.Debug.Log($"Check done.");
@@ -484,18 +483,58 @@ namespace Witchpot.Editor.StableDiffusion
             {
                 default:
                 case StableDiffusionMode.Internal:
-                    return DependenciesInstaller.instance.DestinationBatPath;
+                    return DependenciesInstaller.DestinationBatPath;
 
                 case StableDiffusionMode.External:
                     return _externalPath;
             }
         }
 
+        private void UpdateProcessStartInfo()
+        {
+            switch (_server)
+            {
+                case ServerType.Internal:
+                    _UseShellExecute = false;
+                    _CreateNoWindow = true;
+                    _UseRedirectStandardOutput = true;
+                    _ProcessName = "python";
+                    _WorkingDirectory = string.Empty;
+                    _FileName = DependenciesInstaller.DestinationPythonExePath;
+                    _Arguments = $"-u {EditorPaths.WEBUI_SCRIPT_PATH}";
+                    _Verb = string.Empty;
+                    break;
+
+                case ServerType.InternalBat:
+                    _UseShellExecute = false;
+                    _CreateNoWindow = true;
+                    _UseRedirectStandardOutput = true;
+                    _ProcessName = "cmd";
+                    _WorkingDirectory = string.Empty;
+                    _FileName = "cmd.exe";
+                    _Arguments = $"/c";
+                    _Verb = "RunAs";
+                    break;
+
+                default:
+                case ServerType.External:
+                    _UseShellExecute = true;
+                    _CreateNoWindow = false;
+                    _UseRedirectStandardOutput = false;
+                    _ProcessName = "python";
+                    _WorkingDirectory = string.Empty;
+                    _FileName = DependenciesInstaller.DestinationPythonExePath;
+                    _Arguments = $"{EditorPaths.WEBUI_SCRIPT_PATH}";
+                    _Verb = string.Empty;
+                    break;
+            }
+        }
+
         private void _Start()
         {
-            var project = System.IO.Path.GetDirectoryName(Application.dataPath);
+            UpdateProcessStartInfo();
 
-            if (!System.IO.File.Exists(System.IO.Path.Combine(project, _FileName)))
+            if (!System.IO.File.Exists(_FileName))
             {
                 // TODO: The message should include the next action.
                 UnityEngine.Debug.LogError($"{_FileName} not found.");
@@ -555,10 +594,25 @@ namespace Witchpot.Editor.StableDiffusion
 
             UnityEngine.Debug.Log($"Stop server. (PID:{process.Id})");
 
-            process.Kill();
+            KillProcessTree(process);
             process.WaitForExit();
 
             _pidList.Remove(process.Id);
+        }
+
+        private void KillProcessTree(Process process)
+        {
+            string taskkill = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "taskkill.exe");
+
+            using (var procKiller = new Process())
+            {
+                procKiller.StartInfo.FileName = taskkill;
+                procKiller.StartInfo.Arguments = $"/PID {process.Id} /T /F";
+                procKiller.StartInfo.CreateNoWindow = true;
+                procKiller.StartInfo.UseShellExecute = false;
+                procKiller.Start();
+                procKiller.WaitForExit();
+            }
         }
 
         private bool _Stop()

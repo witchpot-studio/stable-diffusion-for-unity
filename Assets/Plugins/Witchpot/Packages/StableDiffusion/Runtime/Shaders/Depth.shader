@@ -3,35 +3,51 @@ Shader "Witchpot/PostProcess/Depth"
     Properties
     { }
 
-    SubShader
+        SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        Tags { "RenderType" = "Unlit" "RenderPipeline" = "UniversalPipeline"}
         Cull Off ZWrite Off ZTest Always
 
         Pass
         {
+            Name "DepthPass"
+
             HLSLPROGRAM
+
+            #include "./witchpot.cginc"
+
+            #if UNITY_VERSION >= UNITY_URP_14
+                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+                #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
+            #else
+                #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+            #endif
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+            #pragma shader_feature_local _ TO_TEXTURE
 
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
-
-            TEXTURE2D_X(_MainTex);
-            SAMPLER(sampler_MainTex);
-            float _Weight;
-            float4x4 _ViewToWorld;
-
-            half4 Frag(Varyings IN) : SV_Target
+            half4 Frag(Varyings input) : SV_Target
             {
-                float4 mainColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
+                #if UNITY_VERSION >= UNITY_URP_14
+                    float d = SampleSceneDepth(input.texcoord);
+                #else
+                    float d = SampleSceneDepth(input.uv);
+                #endif
 
-                float depth = SampleSceneDepth(IN.uv);
+                float3 depth = float3(d, d, d);
+                depth = abs(depth);
 
-                return lerp(mainColor, depth, _Weight);
+                #if !UNITY_COLORSPACE_GAMMA && !TO_TEXTURE
+                    depth = SRGBToLinear(depth);
+                #endif
+
+                float4 color = float4(depth, 1.0);
+                return color;
             }
-
             ENDHLSL
         }
     }

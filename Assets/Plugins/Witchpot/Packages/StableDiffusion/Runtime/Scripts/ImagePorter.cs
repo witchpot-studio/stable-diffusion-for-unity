@@ -2,7 +2,6 @@
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Rendering;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -41,7 +40,6 @@ namespace Witchpot.Runtime.StableDiffusion
             var path = Path.Combine(dir, $"{filename}.png");
 
             File.WriteAllBytes(path, data);
-            AssetDatabase.Refresh();
 
             return true;
         }
@@ -95,7 +93,6 @@ namespace Witchpot.Runtime.StableDiffusion
             }
 
             File.WriteAllBytes(path, data);
-            AssetDatabase.Refresh();
 
             return true;
         }
@@ -141,13 +138,8 @@ namespace Witchpot.Runtime.StableDiffusion
             {
                 exporter(texture, image);
 
-                if (!Application.isPlaying)
-                {
-                    AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-                    EditorApplication.QueuePlayerLoopUpdate();
-                    EditorSceneManager.MarkAllScenesDirty();
-                    EditorUtility.RequestScriptReload();
-                }
+                EditorApplication.QueuePlayerLoopUpdate();
+                EditorSceneManager.MarkAllScenesDirty();
 
                 return true;
             }
@@ -206,6 +198,14 @@ namespace Witchpot.Runtime.StableDiffusion
         public static bool LoadIntoImage(Texture2D texture, Renderer image)
         {
             return LoadIntoImage(texture, image, LoadIntoRenderer);
+        }
+
+        public static void RefreshUnityEditor()
+        {
+            if (Application.isPlaying) { return; }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            EditorUtility.RequestScriptReload();
         }
 
         private static string _suffix = "(Instance)";

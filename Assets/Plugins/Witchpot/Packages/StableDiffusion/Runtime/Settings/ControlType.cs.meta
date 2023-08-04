@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: dad1b5334ffe1a04a8809b6c026e5640
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _stableDiffusionWebUISettings: {fileID: 11400000, guid: 44c0a24ec1fd6d548a0862fa02c7b539,
+      type: 2}
+  - _imageCapturer: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

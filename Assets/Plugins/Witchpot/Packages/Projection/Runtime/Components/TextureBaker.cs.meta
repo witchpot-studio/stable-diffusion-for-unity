@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 98490b2b6113b714dbac06e510a988ba
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_Projector: {instanceID: 0}
+  - bakeMaterialGlobal: {fileID: 2100000, guid: a485a8121bdd3614cb0cf129c4be94ec,
+      type: 2}
+  - bakeMaterial: {fileID: 2100000, guid: 0065f8fed72b8e9478800bca13fc7f48, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

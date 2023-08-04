@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &755830784144523960
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 755830784144523963}
+  - component: {fileID: 755830784144523964}
+  - component: {fileID: 755830784144523965}
+  - component: {fileID: 755830784144523962}
+  m_Layer: 0
+  m_Name: Projector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &755830784144523963
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755830784144523960}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &755830784144523964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755830784144523960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08dae092233197644b386be076b4df6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  textureProjection: {fileID: 0}
+  cameraProjection: {fileID: 0}
+  projectionType: 0
+  renderers: []
+  drawGizmosProjectionTarget: 1
+  autoProjection: 0
+--- !u!114 &755830784144523965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755830784144523960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19c94fd2f73bf184995df0af7fdd2c72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projector: {fileID: 755830784144523964}
+  projectionMaterialGlobal: {fileID: 2100000, guid: d9f26ab11ea37384fb966f3f0b88ac7f,
+    type: 2}
+  projectionMaterial: {fileID: 2100000, guid: f74a4ce903842074eb7f8714f9643e86, type: 2}
+  buffers: []
+--- !u!114 &755830784144523962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755830784144523960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98490b2b6113b714dbac06e510a988ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projector: {fileID: 755830784144523964}
+  textureSize: {x: 1024, y: 1024}
+  exportDirectory: 
+  bakeMaterialGlobal: {fileID: 2100000, guid: a485a8121bdd3614cb0cf129c4be94ec, type: 2}
+  bakeMaterial: {fileID: 2100000, guid: 0065f8fed72b8e9478800bca13fc7f48, type: 2}
