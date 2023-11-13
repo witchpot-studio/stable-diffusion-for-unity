@@ -7,9 +7,12 @@ using ControlNetUnitRequest = Witchpot.Runtime.StableDiffusion.StableDiffusionWe
 
 namespace Witchpot.Runtime.StableDiffusion
 {
-    public abstract class StableDiffusionClientBase : MonoBehaviour, IStableDiffusionClient,
-        StableDiffusionWebUIClient.Post.SdApi.V1.Txt2Img.RequestBody.IDefault,
-        StableDiffusionWebUIClient.Post.SdApi.V1.Img2Img.RequestBody.IDefault
+    public abstract class StableDiffusionClientBase : MonoBehaviour
+#if UNITY_EDITOR
+        , IStableDiffusionClient
+        ,StableDiffusionWebUIClient.Post.SdApi.V1.Txt2Img.RequestBody.IDefault
+        ,StableDiffusionWebUIClient.Post.SdApi.V1.Img2Img.RequestBody.IDefault
+#endif
     {
 #if UNITY_EDITOR
 
@@ -106,7 +109,6 @@ namespace Witchpot.Runtime.StableDiffusion
 
             RefreshUnityEditor();
         }
-
 #endif
 
         [Serializable]

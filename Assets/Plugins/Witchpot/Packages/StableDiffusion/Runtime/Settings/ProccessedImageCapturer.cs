@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Witchpot.Runtime.StableDiffusion
 {
     public static class ImageCapturer
     {
+#if UNITY_EDITOR
         public enum CaptureMode
         {
             ColorImage,
@@ -66,11 +69,13 @@ namespace Witchpot.Runtime.StableDiffusion
                 RenderTexture.DestroyImmediate(render);
             }
         }
+#endif
     }
 
     [CreateAssetMenu(fileName = "PreProccessedImageCapture", menuName = "Witchpot/PreProccessedImageCapture")]
     public class ProccessedImageCapturer : ScriptableObject
     {
+#if UNITY_EDITOR
         private const string GameMenuItem = "Window/General/Game";
 
         [SerializeField]
@@ -117,5 +122,6 @@ namespace Witchpot.Runtime.StableDiffusion
                 _mainRendererFeature.SetRenderToScreen();
             }
         }
+#endif
     }
 }

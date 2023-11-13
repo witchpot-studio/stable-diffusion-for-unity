@@ -48,6 +48,7 @@ namespace Witchpot.Runtime.Projection
         const int NON_TARGET_LAYER_NUMBER = 0;
         const int TARGET_LAYER_NUMBER = 31;
 
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (projector == null)
@@ -65,6 +66,7 @@ namespace Witchpot.Runtime.Projection
                 }
             }
         }
+#endif
 
         private Material GetBakeMaterial()
         {

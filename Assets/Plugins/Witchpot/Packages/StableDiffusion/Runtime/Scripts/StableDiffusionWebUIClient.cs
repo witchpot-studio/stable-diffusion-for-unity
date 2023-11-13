@@ -2,16 +2,20 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Plastic.Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 
+#if UNITY_EDITOR
+using Unity.Plastic.Newtonsoft.Json;
+#endif
 
 namespace Witchpot.Runtime.StableDiffusion
 {
     public interface IStableDiffusionClient
     {
+#if UNITY_EDITOR
         public void OnClickServerAccessButton();
+#endif
     }
 
     public class WebRequestException : Exception
@@ -87,7 +91,12 @@ namespace Witchpot.Runtime.StableDiffusion
 
             protected static IReadOnlyList<TResponses> GetListResponce<TResponses>(string result) where TResponses : IResponses
             {
+#if UNITY_EDITOR
                 return JsonConvert.DeserializeObject<TResponses[]>(result);
+#else
+                // TODO:Make it work in build
+                return null;
+#endif
             }
 
             // field
