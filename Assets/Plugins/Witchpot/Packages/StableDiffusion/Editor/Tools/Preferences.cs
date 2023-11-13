@@ -35,7 +35,7 @@ namespace Witchpot.Editor.StableDiffusion
 
             public static GUIContent infomation = new GUIContent("Infomation");
             public static GUIContent version = new GUIContent("Version");
-            public static GUIContent version_number = new GUIContent("1.4.0"); // HACK: The version is hard corded
+            public static GUIContent version_number = new GUIContent("1.4.1"); // HACK: The version is hard corded
             public static GUIContent document = new GUIContent("Open Document");
             public static GUIContent discord_jp = new GUIContent("Discord JP");
             public static GUIContent discord_en = new GUIContent("Discord EN");

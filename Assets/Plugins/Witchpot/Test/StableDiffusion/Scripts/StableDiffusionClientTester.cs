@@ -1,14 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 
 namespace Witchpot.Runtime.StableDiffusion.Test
 {
-    public class StableDiffusionClientTester : MonoBehaviour, IStableDiffusionClient
+    public class StableDiffusionClientTester : MonoBehaviour
+#if UNITY_EDITOR
+        ,IStableDiffusionClient
+#endif
     {
+#if UNITY_EDITOR
         [SerializeField]
         private List<StableDiffusionClientBase> m_ClientBaseList = new List<StableDiffusionClientBase>();
 
@@ -53,5 +56,6 @@ namespace Witchpot.Runtime.StableDiffusion.Test
                 _generating = false;
             }
         }
+#endif
     }
 }
